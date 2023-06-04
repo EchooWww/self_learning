@@ -3,39 +3,34 @@ package DSnA;
  * of the nakedness within. */
 
  // Easier to instantiate because it's not "naked"
-public class SLList {
-  public class IntNode {
-    public int item;
-    public IntNode next;
+public class SLList<LochNess> {
+  public class StuffNode {
+    public LochNess item;
+    public StuffNode next;
   
-    public IntNode(int i, IntNode n) {
+    public StuffNode(LochNess i, StuffNode n) {
       item = i;
       next = n;
     }
   
   }
-  // public IntNode first;
-  private IntNode sentinel;
-  private int size;
-  public SLList() {
-    sentinel = new IntNode(63, null);
-    size = 0;
-  }
 
-  public SLList (int x) {
-    sentinel = new IntNode(63, null);
-    sentinel.next = new IntNode(x, null);
+  private StuffNode first;
+  private int size;
+ 
+  public SLList (LochNess x) {
+    first = new StuffNode(x, null);
     size = 1;
   }
 
 
   public void addFirst(int x) {
-  sentinel.next = new IntNode(x, sentinel.next);
+  first = new StuffNode(x, null);
   size++;
   }
 
   public int getFirst() {
-    return sentinel.next.item;
+    return first.next.item;
   }
 
   public void addLast(int x) {

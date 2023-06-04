@@ -303,13 +303,79 @@ public class DLList {
     size++;
   }
 
-  public int addLast(int x) {
-    IntNode p = sentinel;
-    while (p.next != null) {
-      p = p.next;
-    }
-    p.next = new IntNode(x, null, p);
+  public void addLast(int x) {
+    sentinel.prev = new IntNode(x, sentinel, sentinel.prev);
     size++;
+  }
+
+  public static void main(String[] args) {
+    DLList L = new DLList(15);
+    L.addFirst(10);
+    L.addFirst(5);
+    L.addLast(20);
+    System.out.println(L.size());
   }
 }
 ```
+
+#### Generic type of SLList
+
+The way we implemented SLList is not flexible enough, we can only store integers in the list. We can use generics to make the list more flexible.
+
+Add a type parameter to the class name, and use the type parameter in the class definition:
+
+```java
+public class SLList<LochNess> {
+  public class IntNode {
+    public LochNess item;
+    public IntNode next;
+
+    public IntNode(LochNess i, IntNode n) {
+      item = i;
+      next = n;
+    }
+
+  }
+  public IntNode first;
+  public SLList(LochNess x) {
+    first = new IntNode(x, null);
+  }
+```
+
+### Arrays
+
+- Arrays are using memory boxes that are numbered instead of named.
+  Arrays are fixed in size, we can't add or remove elements from an array.
+- Unlike python, we can't have arrays of different types in Java.
+- Unlike class, arrays have no methods, we can only access the elements and the length of the array.
+
+#### Notations for arrays
+
+```java
+int[] z = new int[3];
+int[] x, y;
+x = new int[]{1, 2, 3}; // can omit the length if we are providing the elements.
+int [] w = {9, 10, 11}; // can omit the new keyword if we are declaring and initializing at the same time. cannot do this for an already declared variable.
+```
+
+#### Copying arrays
+
+System.arraycopy() method can be a better way to copy the array than using a for loop, especially when we are copying a part of the array or the array is large.
+
+```java
+System.arraycopy(a, 0, b, 2, 3); // copy 3 elements from a, starting from index 0, to b, starting from index 2.
+```
+
+#### 2D arrays
+
+```java
+int[][] pascalsTriangle; // make me an array of array references
+int [][] matrix = new int[4][]; // creates 1 array of length 4, but each element is null.
+matrix = new int[4][4]; // create 5 arrays in total
+int [][] pascalAgain = new int[][]{{1}, {1, 1}, {1, 2, 1}, {1, 3, 3, 1}};
+```
+
+#### Array vs. Classes
+
+- To access a member of an array, we use the index of the element. While to access a member of a class, we use the name of the member. We can get the index at the runtime, but the only way to get the name of a member is to hard code it.
+- In short, the Java complier won't consider elements around the dot notation as a variable, it will only consider the name of the member.
