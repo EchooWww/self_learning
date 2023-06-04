@@ -54,6 +54,13 @@ def area(radius):  #function signature
     return mul(radius, radius)  #function body
 
 area(3) # will return 9
+
+"""arguments can have default values"""
+def area(radius = 3):
+    return mul(radius, radius)
+"""the following 2 lines will return the same value"""
+area()
+area(3)
 ```
 
 ### Environments
@@ -72,3 +79,102 @@ Looking up names in environments:
 ## Multiple Environments
 
 - When the function is called, a new frame is created, the parameters are bound to the arguments in the signature, and the body is executed in that **new environment**
+
+## Operators
+
+- Divisions: true and integer division
+
+  ```py
+  >>> 2013 / 10
+  201.3
+  >>> 2013 // 10
+  201
+  >>> from operator import truediv, floordiv # equivalent to the above
+  ```
+
+- Mod: % or mod()
+
+- Return multiple or 0 value is both possible
+  ```py
+    >>> def divide_exact(n,d):
+    ...    return n//d, n%d
+    >>> quotinent,remained = divide_exact(2013,10)
+    >>> quotinent
+    201
+    >>> remainder
+    3
+  ```
+
+## Run python in interactive mode / in a file
+
+- Interactive mode without file in terminal
+  ```bash
+  python3
+  ```
+- Run the file in terminal
+  ```bash
+  python3 name.py
+  ```
+- Run the file in interactive mode
+  ```bash
+  python3 -i name.py
+  ```
+
+## Documentations
+
+Doctest and Docstring
+
+```py
+    """Come up with the most creative expression that evaluates to 2022,
+    using only numbers and the +, *, and - operators.
+
+    >>> twenty_twenty_two()
+    2022
+    """
+```
+
+To run the doctest
+
+```bash
+python3 -m doctest name.py # No output if test is running correct
+python3 -m doctest -v name.py # to show the details
+```
+
+## Conditional statements
+
+### Syntax of conditional statements in python
+
+```py
+def absolute_value(x):
+  if x < 0:
+    return -x
+  elif x == 0: #Python's keyword for 'else if'
+    return 0
+  else:
+    return x
+```
+
+### Booleans in Python
+
+- False values: false, 0, ''(empty string), None (more to come), [], {}, () (empty list, dictionary and tuple)
+- True values: anything else
+- Like in Java, a return statement terminate the execution of Python code
+
+### Boolean operators
+
+Python got shot curcuits as Java does
+
+- not: ! in Java
+- and: && in Java
+- or: || in Java (so `False or 9999 or 1/0` will be evaluated as `9999`)
+
+## Iteration
+
+- Syntax : similar to conditional statements
+
+  ```py
+  i, total = 0, 0
+  while i < 3:
+    i = i + 1
+    total = total + i
+  ```
