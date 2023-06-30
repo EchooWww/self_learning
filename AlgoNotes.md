@@ -62,7 +62,106 @@ List <Integer> nums = new ArrayList<>();
 
 # Linked List
 
+## Two-pointer Technique in Linked List
+
+## Reverse Linked List with recursion
+
+## Reverse Linked List in k groups
+
+## Judge palindrome linked list
+
 # Arrays
+
+## Prefix Sum
+
+- An elegant way to solve problems that require to calculate the sum of a subarray, with time complexity of O(1) for each query.
+- The idea is to calculate the prefix sum of the array, and store the sum in a new array. Then we can get the sum of any subarray by calculating the difference between the prefix sum of the end index and the start index.
+- For example, if we want sum of subarray [i, j], we can get it by prefixSum[j] - prefixSum[i-1]
+
+### Prefix Sum Problem in 1d-array
+
+> [Leetcode 303. Range Sum Query - Immutable (Easy)](https://leetcode.com/problems/range-sum-query-immutable/)
+
+```java
+class NumArray {
+    private int[] nums;
+    private int[] prevs;
+    public NumArray(int[] nums) {
+        this.nums = nums;
+        // Detail: we need to initialize the prevs array with length of nums.length + 1, because we need to store the sum of the first i elements in prevs[i]
+        prevs = new int[nums.length+1];
+        prevs[0] = 0;
+        for(int i = 1; i < prevs.length; i++) {
+            prevs[i] = prevs[i-1] + nums[i-1];
+        }
+    }
+
+    public int sumRange(int left, int right) {
+        return prevs[right + 1] - prevs[left];
+    }
+}
+```
+
+### Prefix Sum Problem in 2d-array
+
+> [Leetcode 304. Range Sum Query 2D - Immutable (Medium)](https://leetcode.com/problems/range-sum-query-2d-immutable/)
+
+- For any area in the 2d-array, we can convert it to the result of calculations of 4 areas starting from [0,0].
+
+```java
+class NumMatrix {
+    private int[][] matrix;
+    private int[][] prev;
+    public NumMatrix(int[][] matrix) {
+        this.matrix = matrix;
+        int r = matrix.length;
+        int c = matrix[0].length;
+        prev = new int[r+1][c+1];
+        for(int i = 1; i <= r; i++) {
+            for(int j = 1; j <= c; j++) {
+                prev[i][j] = prev[i-1][j] + prev[i][j-1] - prev[i-1][j-1] + matrix[i-1][j-1];
+            }
+        }
+    }
+
+    public int sumRegion(int row1, int col1, int row2, int col2) {
+        return prev[row2 + 1][col2 + 1] - prev[row1][col2 + 1] - prev[row2 + 1][col1] + prev[row1][col1];
+    }
+}
+```
+
+## Difference Array
+
+- Difference array is an array that stores the difference between adjacent elements in the original array. We can transfer between the original array and the difference array by the following formula:
+  - diff[i] = nums[i] - nums[i-1]
+  - nums[i] = diff[i] + nums[i-1]
+- When we need to update a range of elements in the original array, we can update the difference array instead, which is much faster.
+- For example, if we want to increment all the elements in the range [i, j] by 1, we can update the difference array by:
+  - diff[i] += 1
+  - diff[j+1] -= 1 // Only when j+1 is in the range of the difference array
+
+### Difference Array Problem
+
+> [Leetcode 1109. Corporate Flight Bookings (Medium)](https://leetcode.com/problems/corporate-flight-bookings/)
+
+```java
+class Solution {
+    public int[] corpFlightBookings(int[][] bookings, int n) {
+        int[] res = new int[n];
+        int[] diff = new int[n];
+        for(int[] record: bookings) {
+            diff[record[0] - 1] += record[2];
+            // Only when j+1 is in the range of the difference array
+            if(record[1] < n) diff[record[1]] -= record[2];
+        }
+        res[0] = diff[0];
+        for(int i = 1; i < n; i++) {
+            res[i] = res[i-1] + diff[i];
+        }
+        return res;
+    }
+}
+```
 
 ## Tricks in 2d-array problems
 
@@ -115,7 +214,7 @@ class Solution {
 
 - We do it by dynamically changing the boundaries of the matrix, and use four variables to represent the boundaries: left, right, top, bottom.
 
-```
+```bash
 1 2 3
 8 9 4
 7 6 5
@@ -317,6 +416,132 @@ class Solution {
         return res;
     }
 }
+```
+
+## Binary Search
+
+There are many details in writing binary search algorithm. Here we list some common mistakes that we should avoid.
+
+- To avoid overflow, we should use `int mid = left + (right - left) / 2` instead of `int mid = (left + right) / 2`.
+- Depending on whether to include `right` in the search range, we should use 2 different conditions.
+  - When `right` is included
+  ```java
+  // Initialize right to be the last index of the array
+  int right = nums.length - 1;
+  // Set the condition to be left <= right, so when left == right, we still have one element to check
+  while(left <= right) {
+      int mid = left + (right - left) / 2;
+      if(nums[mid] == target) {
+          return mid;
+      } else if(nums[mid] < target) {
+          left = mid + 1;
+      } else {
+          // Update right to be mid - 1, so we can exclude mid from the search range
+          right = mid - 1;
+      }
+  }
+  ```
+  - When `right` is excluded
+  ```java
+  // Initialize right to be the length of the array
+  int right = nums.length;
+  // Set the condition to be left < right, so when left == right, we have checked all elements in the array
+  while(left < right) {
+      int mid = left + (right - left) / 2;
+      if(nums[mid] == target) {
+          return mid;
+      } else if(nums[mid] < target) {
+          left = mid + 1;
+      } else {
+          // Update right to be mid, so we can exclude mid from the search range
+          right = mid;
+      }
+  }
+  ```
+  There's a framework of binary search algorithm that we can follow.
+
+```java
+int left = 0;
+int right = nums.length - 1;
+while(left<=right) {
+  int mid = left + (right - left) / 2;
+  if(nums[mid] == target) {
+    ...
+  } else if(nums[mid] < target) {
+    ...
+  } else if (nums[mid] > target){
+    ...
+  }
+}
+
+```
+
+### Find the target and return its index
+
+> [Leetcode 704. Binary Search (Easy)](https://leetcode.com/problems/binary-search/)
+
+```java
+class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0, right = nums.length - 1;
+        while(left <= right) {
+            int mid = left + (right - left) / 2;
+            if(nums[mid] == target) {
+                return mid;
+            } else if(nums[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return -1;
+    }
+}
+```
+
+### Find the first target and return its index
+
+- One condition to return -1: `left == nums.length`, which means that we have checked all elements in the array and the target is not found.
+- The other condition to return -1: `nums[left] != target`, which means that we can find the position of the target in the array, but the target is not found.
+- Pay attention: when `nums[mid] == target`, we should update `right` instead of returning immediately, because we want to find the first target.
+
+### Find the last target and return its index
+
+- When `nums[mid] == target`, we should update `left` to be `mid + 1`
+- The conditions of returning -1 are similar to the previous question. This time we check `right` instead of `left`, whether `right ` is equal to `-1` or `nums[right] != target`.
+
+> [Leetcode 34. Find First and Last Position of Element in Sorted Array (Medium)](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+```java
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        int leftBound = findLeft(nums, target);
+        int rightBound = findRight(nums, target);
+        return new int[]{leftBound, rightBound};
+    }
+    public int findLeft(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length - 1;
+        while(left <= right) {
+            int mid = left + (right - left)/2;
+            if (nums[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return left > nums.length - 1 || nums[left] != target? -1: left;
+    }
+
+    public int findRight(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length - 1;
+        while (left <= right) {
+            int mid = left + (right - left)/2;
+            if (nums[mid] <= target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return right < 0 || nums[right] != target? -1: right;
+    }
+}
+
 ```
 
 # Binary Tree and Recursions
