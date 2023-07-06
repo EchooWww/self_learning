@@ -62,9 +62,232 @@ List <Integer> nums = new ArrayList<>();
 
 # Linked List
 
+- A common trick: add a dummy node at the beginning of the linked list, which can help to deal with the edge cases: empty list, list with only one node, etc.
+- Where to use dummy node: when we need to create and return a new linked list, or when we need to modify the head of the linked list
+- The common condition of while loop: `while (p1!=null && p2!=null)`
+
 ## Two-pointer Technique in Linked List
 
+### Merge 2 sorted linked lists
+
+1. Create a dummy node
+2. Create 2 pointers, point to the head of each list
+3. Compare the 2 values of the 2 pointers, add the smaller one to the dummy node, and move the pointer to the next node
+4. Return the dummy node's next node
+
+> [Leetcode 21. Merge Two Sorted Lists (Easy)](https://leetcode.com/problems/merge-two-sorted-lists/)
+
+```java
+class Solution {
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        ListNode p1 = list1, p2 = list2;
+        ListNode dummy = new ListNode(-1), p = dummy;
+
+        while (p1!=null && p2!=null) {
+            if (p1.val <= p2.val) {
+                p.next = p1;
+                p1 = p1.next;
+            }
+            else {
+                p.next = p2;
+                p2 = p2.next;
+            }
+            p = p.next;
+        }
+        if (p1 == null) {
+            p.next = p2;
+        } else {
+            p.next = p1;
+        }
+    return dummy.next;
+    }
+}
+```
+
+### Partition Linked List
+
+Be sure to check if we have disconnected the last node of the list, otherwise it will cause an infinite loop (cycles in the list)
+
+> [Leetcode 86. Partition List (Medium)](https://leetcode.com/problems/partition-list/)
+
+```java
+class Solution {
+    public ListNode partition(ListNode head, int x) {
+        ListNode dummy1 = new ListNode(-1), p1 = dummy1;
+        ListNode dummy2 = new ListNode(-1), p2 = dummy2;
+        ListNode p = head;
+        while(p!=null) {
+            if (p.val < x) {
+                p1.next = p;
+                p1 = p1.next;
+            } else {
+                p2.next = p;
+                p2 = p2.next;
+            }
+            p = p.next;
+        }
+        p1.next = dummy2.next;
+        p2.next = null;
+        return dummy1.next;
+    }
+}
+```
+
+### Merge k sorted linked lists
+
+- We can use PriorityQueue to solve this problem, which is a min heap.
+- The point is to override the comparator of the PriorityQueue, so that it can compare the values of the nodes in the linked list.
+- We add the head nodes to the PriorityQueue, and then poll the node with the smallest value, and add the next node of the polled node to the PriorityQueue.
+- We can also have k pointers!
+
+> [Leetcode 23. Merge k Sorted Lists (Hard)](https://leetcode.com/problems/merge-k-sorted-lists/)
+
+```java
+class Solution {
+    public ListNode mergeKLists(ListNode[] lists) {
+        ListNode dummy = new ListNode(-1), p = dummy;
+        // Initialize the PriorityQueue with lambda expression
+        PriorityQueue<ListNode> pq = new PriorityQueue<>((a,b) -> (a.val - b.val));
+        for(ListNode head: lists) {
+            if(head!=null) pq.add(head);
+        }
+        while(!pq.isEmpty()) {
+            ListNode node = pq.poll();
+            p.next = node;
+            p = p.next;
+            if (node.next!=null) pq.add(node.next);
+        }
+        return dummy.next;
+    }
+}
+```
+
+### The Kth node from the end
+
+- Fast and slow pointers
+- Let the fast pointer start from the head, and move k steps first, and then move the slow pointer and the fast pointer together until the fast pointer reaches null.
+
+> [Leetcode 19. Remove Nth Node From End of List (Medium)](https://leetcode.com/problems/remove-nth-node-from-end-of-list/)
+
+```java
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode dummy = new ListNode(-1), slow = dummy, fast = dummy;
+        dummy.next = head;
+        for(int i = 0; i < n; i++) {
+            fast = fast.next;
+        }
+        // we need to find the element before the target element, so we want to terminate when fast.next == null instead of fast == null
+        while (fast.next!=null) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        slow.next = slow.next.next;
+        return dummy.next;
+    }
+}
+```
+
+### The middle node of the linked list
+
+> [Leetcode 876. Middle of the Linked List (Easy)](https://leetcode.com/problems/middle-of-the-linked-list/)
+
+```java
+class Solution {
+    public ListNode middleNode(ListNode head) {
+        ListNode fast = head;
+        ListNode slow = head;
+        while(fast!=null && fast.next !=null) {
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        return slow;
+    }
+}
+```
+
+### Cycle in the linked list
+
+- If there is a cycle in the linked list, then the fast pointer will eventually meet the slow pointer.
+
+> [Leetcode 141. Linked List Cycle (Easy)](https://leetcode.com/problems/linked-list-cycle/)
+
+```java
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        ListNode fast = head;
+        ListNode slow = head;
+        // we need to check if fast.next == null, otherwise it will cause a null pointer exception
+        while(fast!=null && fast.next !=null) {
+            fast = fast.next.next;
+            slow = slow.next;
+            if(fast == null) return false;
+            if(slow == fast) return true;
+        }
+        return false;
+    }
+}
+```
+
+- One more question: if there is a cycle in the linked list, how to find the start node of the cycle?
+  1. Use the fast and slow pointers to find the meeting point of the two pointers: we can assume the distance from the head to the start node of the cycle is a, the distance from the start node of the cycle to the meeting point is b.
+  2. Assume the slower pointer has traveled x, then the faster pointer has traveled 2x.
+  3. Once the slow pointer enters the cycle, the fast pointer will chase the slow one within 1 cycle, so if the cycle has a length of c, then 2x - x = nc, so nc = x = a + b.
+  4. So we can set the slow pointer to the head, and the fast pointer to the meeting point, and move them together, and they will meet at the start node of the cycle.
+     ![Alt text](image.png)
+
+```java
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        ListNode fast = head;
+        ListNode slow = head;
+        while(fast!=null && fast.next!=null) {
+            fast = fast.next.next;
+            slow = slow.next;
+            if (fast == slow) {
+                // we need to set the fast pointer to the head, and move the fast and slow pointers together
+                fast = head;
+                break;
+            }
+        }
+        // we need to consider all conditions that will terminate the while loop
+        if (fast == null || fast.next == null) return null;
+        while (fast!= slow) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        return fast;
+    }
+}
+```
+
+### Find the intersection node of two linked lists
+
+- We can use two pointers to traverse the two linked lists, and if one pointer reaches the end of the linked list, we can set it to the head of the other linked list, and do the same thing for the other pointer. If there is an intersection node, the two pointers will meet at the intersection node.
+- Another way to solve this problem is first traverse the two lists to get the lengths, and then traverse the longer list to make the two lists have the same distance to the end, then traverse the two lists together to find the intersection node.
+- Beware we need to find the same node instead of the same value.
+
 ## Reverse Linked List with recursion
+
+To use recursion, we need to clarify it's definition and the return value of our method.
+
+### Reverse the whole linked list
+
+```java
+ListNode reverse(ListNode head) {
+    if (head.next == null) return head;
+    ListNode last = reverse(head.next);
+    head.next.next = head;
+    head.next = null;
+    return last;
+}
+```
+
+### Reverse the first N nodes
+
+```java
+
+```
 
 ## Reverse Linked List in k groups
 
