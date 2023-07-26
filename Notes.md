@@ -385,3 +385,695 @@ Hoisting: makes some types of variables accessible/ usable in the code before th
 ## 3. Data Structures, Modern Operators and Strings
 
 ### 3.1 Destructuring Arrays
+
+A ESX feature that allows us to easily extract array elements or object properties and store them in variables.
+
+```js
+const arr = [2, 3, 4];
+const [x, y, z] = arr;
+console.log(x, y, z); // 2 3 4
+```
+
+If we only want to extract the first n elements, we can also use this syntax
+
+```js
+const [x, y] = arr;
+console.log(x, y); // 2 3
+```
+
+If we wanna skip some elements, we can use empty commas
+
+```js
+const [x, , z] = arr;
+console.log(x, z); // 2 4
+```
+
+We can also use destructuring to switch variables
+
+```js
+let [main, secondary] = restaurant.categories;
+console.log(main, secondary); // Italian Vegetarian
+[main, secondary] = [secondary, main];
+console.log(main, secondary); // Vegetarian Italian
+```
+
+Receive return values from a function
+
+```js
+const [starter, mainCourse] = restaurant.order(2, 0);
+console.log(starter, mainCourse); // Garlic Bread Pizza
+```
+
+Nested array destructuring
+
+```js
+const nested = [2, 4, [5, 6]];
+const [i, , j] = nested;
+console.log(i, j); // 2 [5, 6]
+// destruct immediately
+const [i, , [j, k]] = nested;
+console.log(i, j, k); // 2 5 6
+```
+
+Set default values
+
+```js
+const [p = 1, q = 1, r = 1] = [8, 9];
+console.log(p, q, r); // 8 9 1
+```
+
+### 3.2 Destructuring Objects
+
+We destructure the objects with curly braces and the attribute names. The order doesn't matter, but the names must match: especially useful when we receive data from an API.
+
+```js
+const { name, openingHours, categories } = restaurant;
+console.log(name, openingHours, categories); // Classico Italian ['Italian', 'Vegetarian', 'Organic']
+```
+
+What if we want the variable names to be different from the attribute names? We can use the colon to assign new names.
+
+```js
+const {
+  name: restaurantName, // first the attribute name, our variable name after the colon
+  openingHours: hours,
+  categories: tags,
+} = restaurant;
+```
+
+Have default values
+
+```js
+const { menu = [], starterMenu: starters = [] } = restaurant;
+console.log(menu, starters); // [] ['Focaccia', 'Bruschetta', 'Garlic Bread', 'Caprese Salad']
+```
+
+Mutating variables: we need to have a pair of parentheses around the whole destructuring assignment.
+
+```js
+let a = 111;
+let b = 999;
+const obj = { a: 23, b: 7, c: 14 };
+({ a, b } = obj);
+```
+
+Nested objects
+
+```js
+const {
+  fri: { open: o, close: c },
+} = openingHours;
+console.log(o, c); // 11 23
+```
+
+We can also use destructuring to pass objects into functions. We don't need multiple arguments and can pass the attributes in any order.
+
+```js
+orderDelivery: function ({ starterIndex = 1, mainIndex= 0, time= '20:00', address }) {
+    console.log(
+      // we can access the variables directly without specifying 4 arguments
+      `Order received! ${this.starterMenu[starterIndex]} and ${this.mainMenu[mainIndex]} will be delivered to ${address} at ${time}`
+    );
+  },
+
+
+restaurant.orderDelivery({
+time: "22:30",
+address: "Via del Sole, 21",
+mainIndex: 2,
+starterIndex: 2,
+});
+
+```
+
+### 3.3 The Spread Operator
+
+Add elements to arrays
+
+```js
+const arr = [7, 8, 9];
+const badNewArr = [1, 2, arr[0], arr[1], arr[2]];
+console.log(badNewArr); // [1, 2, 7, 8, 9]
+const newArr = [1, 2, ...arr];
+console.log(newArr); // [1, 2, 7, 8, 9]
+```
+
+We can also use the spread operator to get the elements of the array individually
+
+```js
+console.log(...newArr); // 1 2 7 8 9
+```
+
+Add elements and create a new array: we are not manipulating the original array.
+The big difference between the spread operator and destructuring is that the spread operator takes all the elements out of the array, while destructuring creates new variables.
+
+```js
+const newMenu = [...restaurant.mainMenu, "Gnocci"];
+console.log(newMenu); // ['Pizza', 'Pasta', 'Risotto', 'Gnocci']
+```
+
+Copy array
+
+```js
+const mainMenuCopy = [...restaurant.mainMenu];
+```
+
+Join 2 arrays or more
+
+```js
+const menu = [...restaurant.starterMenu, ...restaurant.mainMenu];
+console.log(menu); // ['Focaccia', 'Bruschetta', 'Garlic Bread', 'Caprese Salad', 'Pizza', 'Pasta', 'Risotto'] Containing elements from both arrays
+```
+
+Iterables: arrays, strings, maps, sets. Objects are **not iterable**. So we can use the spread operator with these data structures as well. We can only use the spread operator when building an array or when we pass values into a function.
+
+```js
+const str = "Jonas";
+const letters = [...str, " ", "S."];
+console.log(letters); // ['J', 'o', 'n', 'a', 's', ' ', 'S', '.']
+console.log(...str); // J o n a s
+```
+
+We cannot use the spread operator as string literal, only **building arrays** or **passing values** into functions.
+
+```js
+console.log(`${...str} Schmedtmann`); // Uncaught SyntaxError: Unexpected token '...'
+```
+
+Pass values into functions
+
+```js
+const ingredients = [
+  prompt("Let's make pasta! Ingredient 1?"),
+  prompt("Ingredient 2?"),
+  prompt("Ingredient 3?"),
+];
+console.log(ingredients); // ['garlic', 'olive oil', 'tomatoes']
+restaurant.orderPasta(...ingredients);
+```
+
+Spread operator also works on objects, even though obejcts are not iterables. It's similar to destructuring, but it does not create new variables.
+
+```js
+const restaurantCopy = { ...restaurant };
+```
+
+### 3.4 Rest Pattern and Parameters
+
+- The opposite of spread operator. It packs elements into an array. It's used in destructuring and functions.
+- The main difference is where we use `...`. If we use it on the left side of the assignment operator, it's called the **rest operator**. If we use it on the right side of the assignment operator, it's called the **spread operator**.
+- The rest operator must be the **last** element.
+- There is at most **one** rest parameter in a function.
+
+```js
+// SPREAD, because on RIGHT side of =
+const arr = [1, 2, ...[3, 4]];
+console.log(arr); // [1, 2, 3, 4]
+
+// REST, because on LEFT side of =
+const [a, b, ...others] = [1, 2, 3, 4, 5];
+console.log(a, b, others); // 1 2 [3, 4, 5]
+
+// Both sides, the rest operator must be the last element
+const [pizza, , risotto, ...otherFood] = [
+  ...restaurant.mainMenu,
+  ...restaurant.starterMenu,
+];
+console.log(pizza, risotto, otherFood); // Pizza Risotto ['Focaccia', 'Bruschetta', 'Garlic Bread', 'Caprese Salad']
+
+// Objects with rest operator
+const { sat, ...weekdays } = restaurant.openingHours;
+console.log(weekdays);
+```
+
+- How rest operator works: grabs elements and pack them into an array.
+  ```js
+  // the rest operator in our argument means it will take all the arguments and pack them into an array called `numbers`
+  const add = function (...numbers) {
+    console.log(numbers);
+  };
+  add(2, 3); // [2, 3]
+  add(5, 3, 7, 2); // [5, 3, 7, 2]
+  add(8, 2, 5, 3, 2, 1, 4); // [8, 2, 5, 3, 2, 1, 4]
+  const x = [23, 5, 7];
+  add(...x); // [23, 5, 7]
+  // we use rest when defining a function, and we use spread when calling a function, to make the function can either accept multiple values or an array, it's more flexible
+  ```
+
+### 3.5 Short Circuiting (&& and ||)
+
+&& and || can be used with any data type, and they can return any data type, not only boolean. They can also short circuit the evaluation of any expression.
+
+- They can use any data type
+- They can return any data type connected by the operator (not only boolean)
+- They do short-circuit evaluation
+
+1. for || operator, if the first value is a truthy value, it will immediately return that first value, and it will not even evaluate the second operand. If the first value is a falsy value, it will immediately return the second value.
+2. for && operator, if the first value is a falsy value, it will immediately return that first value, and it will not even evaluate the second operand. If the first value is a truthy value, it will immediately return the second value.
+
+```js
+// --- OR ---
+// return the first truthy value or the last value if all are falsy
+console.log(3 || "Jonas"); // 3
+console.log("" || "Jonas"); // Jonas
+console.log(true || 0); // true
+console.log(undefined || null); // null
+console.log(undefined || 0 || "" || "Hello" || 23 || null); // Hello
+// In practical, we can use it to set default values
+const guest1 = restaurant.numGuests ? restaurant.numGuests : 10;
+// can be simplified as
+const guest2 = restaurant.numGuests || 10;
+
+// --- AND ---
+// return the first falsy value or the last value if all are truthy
+console.log(0 && "Jonas"); // 0
+console.log(7 && "Jonas"); // Jonas
+console.log("Hello" && 23 && null && "Jonas"); // null
+
+// Practical example, to execute the second function only if the first function exists
+if (restaurant.orderPizza) {
+  restaurant.orderPizza("mushrooms", "spinach");
+}
+// can be simplified as
+restaurant.orderPizza && restaurant.orderPizza("mushrooms", "spinach");
+```
+
+3. Nullish coalescing operator (??)
+   - It's similar to ||, but nullish coalescing operator works with nullish values, but not falsy values.
+   - Nullish values: only null and undefined (NOT 0 or '')
+
+```js
+restaurant.numGuests = 0;
+const guestCorrect = restaurant.numGuests ?? 10;
+console.log(guestCorrect); // 0
+```
+
+### 3.6 Logical assignment operators
+
+- Logical operators can be used with assignment operators
+- Logical operators can be used with any data type, and they can return any data type, not only boolean. They can also short circuit the evaluation of any expression.
+
+```js
+restaurant.numGuests = 20;
+let guests = restaurant.numGuests || 10;
+console.log(guests); // 10
+restaurant.numGuests = 0;
+// we can use logical operators with assignment operators
+
+console.log(restaurant.numGuests); // 0
+// or assignment operator: assign the right value if the left value is falsy
+restaurant.numGuests ||= 10; // 10
+
+// nullish coalescing assignment operator: assign the right value if the left value is nullish
+restaurant.numGuests ??= 10; // 0, because 0 is not nullish
+
+// and assignment operator: assign the right value if the left value is truthy
+restaurant.numGuests &&= 10; // 0
+```
+
+\
+
+### 3.7 The for-of Loop
+
+- The for-of loop is a new loop introduced in ES6, and it's used for iterating over all iterables, such as arrays, strings, maps, and sets.
+- we are able to still use break and continue statements in the for-of loop
+
+```js
+const menu = [...restaurant.starterMenu, ...restaurant.mainMenu];
+// for-of loop
+for (const item of menu) console.log(item);
+// to get the index in the for-of loop, we can use the entries() method, it returns an array with the index and the element for iterables
+for (const item of menu.entries()) console.log(item);
+// we can destructure in the for-of loop
+for (const [index, element] of menu.entries())
+  console.log(`${index + 1}: ${element}`);
+```
+
+### 3.8 Enhanced Object Literals
+
+- If we want to add a new property to an object with an existing object as the value, we can use the object literal syntax
+
+```js
+const openingHours = {
+  thu: {
+    open: 12,
+    close: 22,
+  },
+  fri: {
+    open: 11,
+    close: 23,
+  },
+  sat: {
+    open: 0, // Open 24 hours
+    close: 24,
+  },
+};
+
+const restaurant = {
+  name: "BigWay",
+  // we can just use the variable name, and it will be automatically converted to the same property name and assign the value of the variable to the property
+  openingHours,
+};
+```
+
+- We can also remove the semi-colon and the colon in the object literal for function attributes
+
+```js
+const restaurant = {
+  // it's still the attribute of `order`, but we don't need to specify the key and the value
+  order(starterIndex, mainIndex) {
+    return [this.starterMenu[starterIndex], this.mainMenu[mainIndex]];
+  },
+};
+```
+
+- We can compute property names in the object literal
+
+```js
+const weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const openingHours = {
+  [weekdays[3]]: {
+    open: 12,
+    close: 22,
+  },
+  [weekdays[4]]: {
+    open: 11,
+    close: 23,
+  },
+  [`day-${2 + 4}`]: {
+    open: 0, // Open 24 hours
+    close: 24,
+  },
+};
+```
+
+### 3.9 Optional Chaining (?.)
+
+- The optional chaining operator is used to check if a certain property exists in an object. Only if it exists, then it will read the property. If it doesn't exist, it will return undefined immediately. It helps us to get rid of the errors because of the missing properties.
+
+```js
+// we can use the optional chaining operator and the nullish coalescing operator together
+const open = restaurant.hours[day]?.open ?? "closed";
+```
+
+- We can use optional chaining for checking if a function exists in an object before calling it
+
+```js
+console.log(restaurant.order1?.(0, 1) ?? "Method does not exist");
+```
+
+- Optional chaining also works on arrays
+
+```js
+const users = [{ name: "Echo", email: "echoooo1996@gamil.com" }];
+console.log(users[0]?.email ?? "user not found!");
+```
+
+### 3.10 Looping Objects: Object Keys, Values, and Entries
+
+- We can get keys of an object using `Object.keys()`, and it returns an array of the keys
+
+```js
+// property keys
+const properties = Object.keys(restaurant.hours);
+console.log(properties);
+let openStr = `we will open on ${properties.length} days: `;
+for (const day of Object.keys(restaurant.hours)) openStr += day + " ";
+```
+
+- We can get values of an object using `Object.values()`, and it returns an array of the values
+
+```js
+const values = Object.values(restaurant.hours);
+```
+
+- We can also get both keys and values of an object using `Object.entries()`, and it returns an array of arrays, each array contains the key and the value of the property
+
+```js
+// entries [key-value pairs], getting array of arrays of length 2
+const entries = Object.entries(restaurant.hours);
+// we can destructure the array of arrays immediately in the for-of loop
+for (const [day, { open, close }] of entries)
+  console.log(`on ${day}, we open at ${open}, we close at ${close}`);
+```
+
+### 3.10 Sets
+
+- A collection of unique values
+- It can hold different daya types;
+
+```js
+const orderSet = new Set("Pasta", "Piza", "Pizza");
+console.log(orderSet); // Set(2) {"Pasta", "Pizza"}
+console.log(orderSet.size); // 2
+console.log(orderSet.has("Pizza")); // true, works similar as the includes() method of arrays
+orderSet.add("Garlic Bread");
+orderSet.delete("Pasta");
+```
+
+- There is no index in sets, so we cannot get elements from sets using index
+- We can use the for-of loop to loop over the elements in the set like any other iterable
+
+```js
+const staff = ["Waiter", "Chef", "Waiter", "<Manager", "Chef", "Waiter"];
+const staffUnique = [...new Set(staff)]; // we can use the spread operator to convert the set to an array
+console.log(staffUnique); // Set(3) {"Waiter", "Chef", "<Manager"}
+console.log(new Set(staff).size); // 3
+// we can also count the number of unique characters in a string
+console.log(new Set("jonasschmedtmann").size); // 11
+```
+
+### 3.11 Maps
+
+1. Maps: fundamentals
+
+- A map is stored in key-value pairs, and it's similar to objects, but the keys can have any data type, and we can use any data type as the key. In objects, the keys are always **strings**.
+- set() method: add new key-value pairs to the map, and it returns the map itself, so we can chain the set() method.
+
+```js
+const rest = new Map();
+rest
+  .set("open", 11)
+  .set("close", 23)
+  .set(true, "we are open")
+  .set(false, "we are closed");
+
+const time = 8;
+// smart yet not so readable
+console.log(rest.get(time > rest.get("open") && time < rest.get("close")));
+```
+
+- get(), delete(), and has() methods
+
+```js
+console.log(rest.get("open")); // 11
+console.log(rest.get(true)); // we are open
+rest.delete(false); // just specify the key
+console.log(rest); // Map(3) {"open" => 11, "close" => 23, true => "we are open"}
+console.log(rest.has(false)); // false
+console.log(rest.size); // 3
+```
+
+- When we are using array as keys, we should use a variable to store the array instead of the array literal: because the array literal is not the same array in the heap, and it will not work as the key.
+
+```js
+const arr = [1, 2];
+rest.set(arr, "test");
+console.log(rest.get(arr)); // test
+console.log(rest.get([1, 2])); // undefined
+```
+
+- We can also use maps on DOM elements
+
+```js
+rest.set(document.querySelector("h1"), "Heading");
+```
+
+2. Maps: iteration
+
+- Maps has a similar structure (array of arrays) with the entries() method of objects, so we can convert an object to a map using the entries() method easily
+
+```js
+const map = new Map(Object.entries(ourObject));
+```
+
+- We can also convert a map to an array using the spread operator
+
+```js
+// we can use the map object to call the entries() method (unlike the object, we need to use Object.entries() as it's static)
+console.log([...question]);
+console.log([...question.entries()]);
+console.log([...question.keys()]);
+console.log([...question.values()]);
+```
+
+### 3.12 Which Data Structure to Use?
+
+> Sources of data
+
+- From the program itself: written directly in the source code
+- From the UI (DOM, other events)
+- From external sources: data fetched from wev APIs, data stored in files, etc.
+
+If we want a simple list => use an array or a set
+If we want key-value pairs => use an object or a map
+
+> But how to decide whether to use an array or a set, or an object or a map?
+> **Arrays and Sets**
+
+- Use arrays when you need ordered list of values, and when you need to manipulate data
+- Use sets when you need to work with unique values, and when high-performance is really important, and when you need to remove duplicates
+
+**Objects and Maps**
+
+- Objects: more traditional key/value store, easier to write and access values with . and [], and when we need to include functions(methods)
+  - Use when you need to include functions/ methods as values
+  - Use when working with JSON (can convert between objects and JSON)
+- Maps: better performance, keys can have any data type, easy to iterate, easy to compute size, and when we simply need to map key to values
+  - Use when you simply need to map key to values
+  - Use when you need keys that are not strings
+
+### 3.13 Work with Strings
+
+1. slice(), indexOf(), lastIndexOf(), indices start from 0
+
+```js
+const airline = "TAP Air Portugal";
+const plane = "A320";
+
+console.log(plane[0]);
+console.log(plane[1]);
+console.log(plane[2]);
+console.log("B737"[0]);
+
+console.log(airline.length);
+console.log("B737".length);
+
+console.log(airline.indexOf("r")); // will give us the first index
+console.log(airline.lastIndexOf("r"));
+console.log(airline.indexOf("Air"));
+console.log(airline.indexOf("air")); // will return -1 for it's case-sensitive
+
+console.log(airline.slice(4)); // it's the position where the slice method starts -> slice method returns a new string
+console.log(airline.slice(4, 7)); // the length is 7-4, left inclusive and right exclusive
+
+console.log(airline.slice(0, airline.indexOf(" ")));
+console.log(airline.slice(airline.lastIndexOf(" ") + 1));
+
+console.log(airline.slice(-2)); // cuts off the last 2 characterss
+console.log(airline.slice(1, -1)); // cuts off the last character, from the second to the one before the last
+
+const checkMiddleSeat = function (seat) {
+  // B and E are middle seats
+  const s = seat.slice(-1);
+  if (s === "B" || s === "E") console.log("You got the middle seat😢");
+  else console.log("You are lucky😄");
+};
+checkMiddleSeat("11B");
+checkMiddleSeat("14F");
+```
+
+- String is primitive type, yet When we call methods with string, JS behind the sence converts the primitive String to String objects: this process is called 'Boxing'
+- After the methods being executed, the String objects will be converted back to primitive String again
+
+2. toLowerCase(), toUpperCase(), trim(), replace()
+
+- trim() would remove all the white spaces at the beginning and the end of the string
+- trimStart() and trimEnd() are the new methods introduced in ES10, which would specificly remove the white spaces at the beginning or the end of the string
+
+```js
+// Fix capitalization in name
+const passenger = "eCHo"; //Echo
+const passengerLower = passenger.toLowerCase();
+const passengerCorrect =
+  passengerLower[0].toUpperCase() + passengerLower.slice(1);
+console.log(passengerCorrect);
+
+// Comparing emails
+const email = "hello@echo.io";
+const loginEmail = "  Hello@Echo.IO  \n";
+const normalizedLoginEmail = loginEmail.toLowerCase().trim();
+console.log(email === normalizedLoginEmail);
+```
+
+- replace() creates a new string without mutating the original string
+- replace() only replaces the first match, we can use replaceAll() to replace all the matches
+- We can also use regular expressions in replace() to replace all the matches
+
+```js
+const announcement =
+  "All passengers come to the boarding door 23. Boarding door 23!";
+
+// console.log(announcement.replaceAll('door', 'gate'));
+
+console.log(announcement.replace(/door/g, "gate"));
+```
+
+3. methods returns boolean
+
+- includes()
+- startsWith()
+- endsWith()
+
+```js
+const plane = "Airbus A320neo";
+console.log(plane.includes("A320")); // true
+console.log(plane.includes("Boeing")); // false
+console.log(plane.startsWith("Air")); // true
+
+if (plane.startsWith("Airbus") && plane.endsWith("neo")) {
+  console.log("Part of the NEW Airbus family");
+}
+```
+
+4. padStart(), padEnd(), and repeat()
+
+- The first argument is the length of the new string, the second argument is the string that we want to pad
+
+```js
+const message = "Go to gate 23!";
+console.log(message.padStart(25, "+").padEnd(30, "+"));
+console.log("Echo".padStart(25, "+").padEnd(30, "+"));
+// ++++++++++++Go to gate 23!++
+// +++++++++++++++++++++Echo++
+```
+
+- We can use pad methods easily to mask credit card numbers
+
+```js
+const maskCreditCard = function (number) {
+  const str = number + "";
+  const last = str.slice(-4);
+  return last.padStart(str.length, "*");
+};
+
+console.log(maskCreditCard(123456789)); // ******6789
+```
+
+- repeat() method
+
+```js
+const message2 = "Bad weather... All Departures Delayed... ";
+console.log(message2.repeat(5));
+```
+
+### Coding Challenge #4
+
+```js
+document.body.append(document.createElement("textarea"));
+document.body.append(document.createElement("button"));
+
+document.querySelector("button").addEventListener("click", () => {
+  const text = document.querySelector("textarea").value;
+  const words = text.split("\n");
+  for (let [index, word] of words.entries()) {
+    word = word.trim().toLowerCase();
+    word =
+      word.slice(0, word.indexOf("_") + 1) +
+      word.slice(word.indexOf("_") + 1, word.indexOf("_") + 2).toUpperCase() +
+      word.slice(word.indexOf("_") + 2);
+    word = word.replace("_", "").padEnd(20, " ") + "✅".repeat(index + 1);
+    console.log(word);
+  }
+});
+```
