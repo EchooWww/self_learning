@@ -843,7 +843,7 @@ int fib(int n) {
     return helper(n, memo);
 }
 
-void helper(int n, int[] memo) {
+int helper(int n, int[] memo) {
     if (n == 1 || n == 2) return 1;
     if (memo[n] != 0) return memo[n];
     memo[n] = helper(n - 1, memo) + helper(n - 2, memo);
@@ -870,6 +870,26 @@ int fib (int n) {
 
 ### Change problem
 
+- Given a target amount n and a list of distinct coin values, what's the fewest coins needed to make the change amount?
+
+- we can divide the problem into subproblems. For example, if we have 3 coins, we can divide the problem into 3 subproblems. The first subproblem is to find the fewest coins needed to make the change amount of n - coin1. The second subproblem is to find the fewest coins needed to make the change amount of n - coin2. The third subproblem is to find the fewest coins needed to make the change amount of n - coin3. Then we can get the fewest coins needed to make the change amount of n by adding 1 to the fewest coins needed to make the change amount of n - coin1, n - coin2, and n - coin3. We can use a dp array to store the results of the subproblems. The time complexity is O(n \* k). The space complexity is O(n).
+
+```java
+
+int coinChange(int[] coins, int amount) {
+    int[] dp = new int[amount + 1];
+    for (int i = 1; i <= amount; i++) {
+        dp[i] = amount + 1;
+        for (int coin: coins) {
+            if (i - coin < 0) continue;
+            dp[i] = Math.min(dp[i], 1 + dp[i - coin]);
+        }
+    }
+    return dp[amount] == amount + 1? -1: dp[amount];
+}
+
+```
+
 # Backtracking
 
 - Backtracking and recursion are very similar. The difference is that backtracking is a kind of recursion. It is a method of **exhaustive** search. It is a method of searching for all possible solutions by traversing the search space. It is often used to find all possible solutions to a problem.
@@ -882,3 +902,110 @@ int fib (int n) {
 - subset problems
 - 排列问题 (permutation problem) : emphasize the order
 - 棋盘问题 (chessboard problem)
+
+> Framework of backtracking
+> Traverse a multi-way tree. In every node, we make choice at the pre-order stage and cancel the choice at the post-order stage.
+
+```java
+List<List<Integer>> res = new ArrayList<>();
+
+List<List<Integer>> combinationSum(int[] candidates, int target) {
+    List<Integer> path = new ArrayList<>();
+    backtrack(path, candidates);
+    return res;
+}
+
+void backtrack (路径，选择列表){
+    if (满足结束条件) {
+        res.add(路径);
+        return;
+    }
+    for (选择：选择列表) {
+        做选择;
+        backtrack(路径，选择列表);
+        撤销选择;
+    }
+}
+```
+
+## Examples
+
+### Permutation problem
+
+- Given a collection of distinct integers, return all possible permutations.
+
+```java
+List<List<Integer>> res = new ArrayList<>();
+
+List<List<Integer>> permute(int[] nums) {
+    List<Integer> path = new ArrayList<>();
+    backtrack(path, nums);
+    return res;
+}
+
+void backtrack(List<Integer> path, int[] nums) {
+    if (path.size() == nums.length) {
+        res.add(new ArrayList<>(path)); // due to java's language feature, we need to create a new ArrayList instead of adding path directly.
+        return;
+    }
+    for (int num: nums) {
+        if (path.contains(num)) continue; // skip the number that has been used
+        path.add(num); // make choice
+        backtrack(path, nums);
+        path.remove(path.size() - 1); // cancel choice
+    }
+}
+```
+
+### N-Queens problem
+
+- The n-queens puzzle is the problem of placing n queens on an n x n chessboard such that no two queens attack each other.
+- We need a helper method to check the validity of current coordinate,
+
+```java
+List <List<String>> res = new ArrayList<>();
+
+public List<List<String>> solveNQueens(int n) {
+    List<String> board = new ArrayList<>();
+    StringBuilder sb = new StringBuilder();
+    for(int i = 0; i < n; i++) {
+        sb.append('.');
+    }
+    for(int j = 0; j < n; j++) {
+        board.add(sb.toString());
+    }
+    backtrack(board, 0);
+    return res;
+}
+
+void backtrack(List<String> board, int row) {
+    if (row == board.size()) {
+        res.add(new ArrayList<>(board));
+        return;
+    }
+    for (int col = 0; col < board.size(); col++) {
+        if(!isLegal(board, col, row)) continue;
+        char[] arr = board.get(row).toCharArray();
+        arr[col] = 'Q';
+        board.set(row, String.valueOf(arr));
+        backtrack(board, row + 1);
+        arr[col] = '.';
+        board.set(row, String.valueOf(arr));
+    }
+}
+
+boolean isLegal (List<String> board, int col, int row) {
+    int n = board.size();
+    for (int i = 0; i < n; i++) {
+        if (board.get(i).charAt(col)=='Q') return false;
+    }
+    for (int i = row - 1, j = col - 1; i>=0 && j >=0; i--, j--) {
+        if (board.get(i).charAt(j)=='Q') return false;
+    }
+    for (int i = row - 1, j = col + 1; i>=0 && j < n; i--, j++) {
+        if (board.get(i).charAt(j)=='Q') return false;
+    }
+    return true;
+}
+
+```
