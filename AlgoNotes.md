@@ -767,8 +767,118 @@ class Solution {
 
 ```
 
+# Hash Methods
+
+- Usually used to check if a certain element exists in a collection or not, or to find a specific element in a collection.
+- Time complexity: O(1) (much faster than O(n) of the linear search)
+
 # Binary Tree and Recursions
 
+The framework thinking
+
+- Can I solve this problem by traversing the tree in a certain order?
+- Can I solve this problem by divide it into subproblems and solve them recursively?
+
+In essence, quick sort is a pre-order traversal of the binary search tree ( the pivot is at the correct position first)
+
+and merge sort is a post-order traversal of the binary search tree (we sort the left half and right half first, and then merge them together)
+
+## Traverse framework
+
+```java
+void traverse(TreeNode root) {
+    // pre-order traversal
+    traverse(root.left);
+    // in-order traversal
+    traverse(root.right);
+    // post-order traversal
+}
 ```
 
+# Dynamic Programming
+
+- It's a mathematical optimization method. It's a method of solving complex problems by breaking them down into simpler subproblems. It is suitable for solving problems with overlapping subproblems and optimal substructure.我们的目的是求最值，求最值问题一般都是求解问题的最优解，而动态规划是求解最优解的一种方法。
+- 动态规划问题的核心是穷举(exhustive search)
+
+## Traits of dynamic programming problems
+
+- overlapping subproblems 重叠子问题
+- optimal substructure 最优子结构
+- **state transition formula 状态转移方程**:最重要
+
+## Framework of dynamic programming
+
+- state 状态 (something dynamic: parameters or dp array indices)
+- choice 决策 (choose from options after recursive call)
+- definition of dp array 定义 dp 数组/函数的含义
+- base case 初始化
+
+```java
+dp[0][0][...] = base;
+for 状态1 in 状态1的所有取值：
+    for 状态2 in 状态2的所有取值：
+        for ...
+            dp[状态1][状态2][...] = 求最值(选择1，选择2...)
 ```
+
+## Examples
+
+### Fibonacci sequence
+
+- Brute force: O(2^n). There are many duplicate recursive calls.
+
+```java
+fib(n) {
+    if (n == 1 || n == 2) return 1;
+    return fib(n - 1) + fib(n - 2);
+}
+```
+
+- To optimize it, we can use an array `memo` to store the results of the recursive calls. Before recursive calls, we look up the memo array to see if the result has been calculated before. If so, we return the result directly. Otherwise, we calculate the result and store it in the memo array. This method is called **memoization**. The time complexity is O(n). The space complexity is O(n). Exchange space for time.
+
+```java
+int fib(int n) {
+    if (n == 1 || n == 2) return 1;
+    int[] memo = new int[n + 1];
+    return helper(n, memo);
+}
+
+void helper(int n, int[] memo) {
+    if (n == 1 || n == 2) return 1;
+    if (memo[n] != 0) return memo[n];
+    memo[n] = helper(n - 1, memo) + helper(n - 2, memo);
+    return memo[n];
+}
+```
+
+- One more step: can we skip the top-down method? That's the method of dp array. We can use the dp array to store the results of the subproblems. The time complexity is O(n). The space complexity is O(n).
+
+```java
+int fib (int n) {
+    if (n == 0) return 0;
+    int[] dp = new int[n + 1];
+    dp[0] = 1, dp[1] = 1;
+    for (int i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+    }
+    return dp[n];
+}
+
+```
+
+- This is a top-down method.
+
+### Change problem
+
+# Backtracking
+
+- Backtracking and recursion are very similar. The difference is that backtracking is a kind of recursion. It is a method of **exhaustive** search. It is a method of searching for all possible solutions by traversing the search space. It is often used to find all possible solutions to a problem.
+- Backtracking is a method of exhaustive search. It is a method of searching for all possible solutions by traversing the search space. It is often used to find all possible solutions to a problem.
+
+> Problems that can be solved by backtracking
+
+- combination problems : no order
+- 切割问题 (cutting problem)
+- subset problems
+- 排列问题 (permutation problem) : emphasize the order
+- 棋盘问题 (chessboard problem)
