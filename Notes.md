@@ -76,6 +76,7 @@ console.log(friends.indexOf("Bob")); // -1
 ```
 
 - includes(): return a boolean whether the array includes the element
+- join(): join the elements in the array with the specified separator to a string
 
 ### 0.9 Objects
 
@@ -364,21 +365,21 @@ Hoisting: makes some types of variables accessible/ usable in the code before th
 - What if we want to change an attribute value of the copy of the object? We can use `Object.assign()` to create a new object, and then change the value of the new object.
 - The `Object.assign()` only creates a shallow copy, which means that if the object has another object as an attribute, the new object will still point to the same address in the heap as the old object.
 
-  ```js
-  const jessica = {
-    firstName: "Jessica",
-    lastName: "Williams",
-    age: 27,
-    family: ["Alice", "Bob"],
-  };
-  const marriedJessica = Object.assign({}, jessica);
-  marriedJessica.lastName = "Davis";
-  marriedJessica.family.push("Mary"); // this line will change the value of jessica.family as well
-  console.log("Before marriage: ", jessica);
-  console.log("After marriage: ", marriedJessica);
-  // Before marriage:  {firstName: "Jessica", lastName: "Williams", age: 27, family: Array(3)}
-  // After marriage:  {firstName: "Jessica", lastName: "Davis", age: 27, family: Array(3)}
-  ```
+```js
+const jessica = {
+  firstName: "Jessica",
+  lastName: "Williams",
+  age: 27,
+  family: ["Alice", "Bob"],
+};
+const marriedJessica = Object.assign({}, jessica);
+marriedJessica.lastName = "Davis";
+marriedJessica.family.push("Mary"); // this line will change the value of jessica.family as well
+console.log("Before marriage: ", jessica);
+console.log("After marriage: ", marriedJessica);
+// Before marriage:  {firstName: "Jessica", lastName: "Williams", age: 27, family: Array(3)}
+// After marriage:  {firstName: "Jessica", lastName: "Davis", age: 27, family: Array(3)}
+```
 
 - To deep-clone, we need some external libraries, such as lodash.
 
@@ -607,18 +608,19 @@ console.log(weekdays);
 ```
 
 - How rest operator works: grabs elements and pack them into an array.
-  ```js
-  // the rest operator in our argument means it will take all the arguments and pack them into an array called `numbers`
-  const add = function (...numbers) {
-    console.log(numbers);
-  };
-  add(2, 3); // [2, 3]
-  add(5, 3, 7, 2); // [5, 3, 7, 2]
-  add(8, 2, 5, 3, 2, 1, 4); // [8, 2, 5, 3, 2, 1, 4]
-  const x = [23, 5, 7];
-  add(...x); // [23, 5, 7]
-  // we use rest when defining a function, and we use spread when calling a function, to make the function can either accept multiple values or an array, it's more flexible
-  ```
+
+```js
+// the rest operator in our argument means it will take all the arguments and pack them into an array called `numbers`
+const add = function (...numbers) {
+  console.log(numbers);
+};
+add(2, 3); // [2, 3]
+add(5, 3, 7, 2); // [5, 3, 7, 2]
+add(8, 2, 5, 3, 2, 1, 4); // [8, 2, 5, 3, 2, 1, 4]
+const x = [23, 5, 7];
+add(...x); // [23, 5, 7]
+// we use rest when defining a function, and we use spread when calling a function, to make the function can either accept multiple values or an array, it's more flexible
+```
 
 ### 3.5 Short Circuiting (&& and ||)
 
@@ -1076,4 +1078,354 @@ document.querySelector("button").addEventListener("click", () => {
     console.log(word);
   }
 });
+```
+
+## 4. Functions
+
+### 4.1 Default Parameters
+
+- We can specify defauly values of parameters in the function declaration
+- but if we want to calculate the default value based on other parameters, we can only use parameter before the current parameter
+
+```js
+const bookings = [];
+const createBooking = function (
+  flightNum = "CA123",
+  numPassenger = 1,
+  // we can only use parameters defined in the list before price
+  price = 199 * numPassenger
+) {
+  // numPassenger = numPassenger || 1;
+  // price = price || 199;
+  const booking = {
+    flightNum,
+    numPassenger,
+    price,
+  };
+  console.log(booking);
+  bookings.push(booking);
+};
+
+createBooking("LH123");
+createBooking("LH123", 2);
+```
+
+- Also, we cannot skip parameters, we can only pass undefined to skip a parameter
+
+### 4.2 Passing arguments
+
+- For primitive values, we pass a copy of the value into the function, so the original value will not be changed
+- For objects, we pass the reference of the object into the function, so when we manipulate the object within our function, the original object will also be changed
+
+> Passing by value vs. passing by reference
+> Javascript is a pass by value language, and has no pass by reference, even the reference of the object is passed by value (the address value)
+
+### 4.3 First-Class and Higher-Order Functions
+
+> First-Class Functions
+
+- First-class function does not exist in practical, it's a concept in programming language theory, unlike higher-order functions, which is a practical concept.
+- Functions are first-class citizens in JS, which means that functions are simply values.
+- We can store functions in variables or object properties, and also pass functions as parameters of another function, also return a function from another function.
+- We can ven call methods on functions
+
+> Higher-Order Functions
+
+- A function that receives another function as an argument, that returns a new function, or both
+  - Examples of receiving other function: addEventListener, setTimeout, setInterval, forEach, map, filter, reduce, find, etc.
+  - Examples of returning a new function: bind, filter, etc.
+
+### 4.4 Functions Accepting Callback Functions
+
+Callback means a function we don't need to call it ourselves, but pass it as an argument to another function, and then the other function will call it when it finishes its job.
+
+- addEventListener() is a higher-order function, and the callback function is the event handler
+
+```js
+const oneWord = function (str) {
+  return str.replace(/ /g, "").toLowerCase();
+};
+
+const upperFirstWord = function (str) {
+  const [first, ...others] = str.split(" ");
+  return [first.toUpperCase(), ...others].join(" "); // print the new array as a string
+};
+
+// Higher-order function
+const transformer = function (str, fn) {
+  console.log(`transformed string: ${str}`);
+  console.log(`transformed string: ${fn(str)}`);
+  console.log(`transformed string: ${fn.name}`);
+};
+```
+
+- Callback functions allow us to create abstraction. E.g., the transformer function doesn't need to know how the string is transformed, it just needs to know that it will be transformed by the callback function.
+- forEach()
+
+```js
+const high5 = function () {
+  console.log("👋");
+};
+```
+
+### 4.5 Functions Returning Functions
+
+The opposite of callback functions, we return a function from another function.
+
+```js
+const greet = function (greeting) {
+  return function (name) {
+    console.log(`${greeting} ${name}`);
+  };
+};
+
+// calling the function returns a function, which we can assign to another variable, and then call with the new variable
+const greeterHey = greet("hey");
+
+greeterHey("Echo");
+
+// a simpler way
+greet("Hello")("Echo"); // coz greet("Hello") returns a function, and we can call the function immediately
+
+// a shorter way of one arrow function returning another arrow function
+const greet = (greeting) => (name) => console.log(`${greeting} ${name}`);
+```
+
+Might seem weird now, but it's very useful in functional programming.
+
+### 4.6 The call and apply Methods
+
+- What do we do if we wanna call a method from another object? We can isolate the method to be a function, but how to set the `this` keyword to the object we want?
+
+```js
+const lufthansa = {
+  airline: "Lufthansa",
+  iataCode: "LH",
+  bookings: [],
+  book(flightNum, name) {
+    console.log(`${name} booked a seat on ${this.iataCode}${flightNum}`);
+    this.bookings.push({ flight: `${this.iataCode} ${flight}`, name });
+  },
+};
+
+lufthansa.book(352, "Echo Wang");
+lufthansa.book(123, "Ermao Wang");
+
+const eurowings = {
+  airline: "Eurowings",
+  iataCode: "EW",
+  bookings: [],
+};
+
+const book = lufthansa.book; // it's a copy of a method, but became a function, so the 'this' keyword is now pointing to 'undefined'
+book(23, "Sarah Williams"); // Uncaught TypeError: Cannot read property 'iataCode' of undefined
+```
+
+- We have call(), apply() to set the `this` keyword (`call()` is more used)
+- Instead of calling the book function, we call a method on it, and the method would call the function with teh first argument of call() method (which is the object that we want to set the `this` keyword to), and the rest of the arguments are the arguments of the function.
+
+```js
+book.call(eurowings, 23, "Echo Wang"); // the first parameter is the object that we want to set the `this` keyword to, and the rest of the parameters are the arguments of the function
+book.apply(eurowings, [23, "Echo Wang"]); // apply() method takes an array of arguments
+```
+
+- bind() method: similar to call() method, but it does not immediately call the function, but instead returns a new function where the `this` keyword is bound.
+
+```js
+// we use bind() to create a new function with the `this` keyword set to eurowings, and call the new function
+const bookEW = book.bind(eurowings);
+const bookLH = book.bind(lufthansa);
+const bookLX = book.bind(swiss);
+bookEW(235, "Dapang");
+
+// we can also take one step furtuer: we can set the second argument of bind() method to set the first argument of the function
+const bookEW23 = book.bind(eurowings, 23);
+// when we call the new function, we only need to pass the second argument
+bookEW23("Echo Wang");
+```
+
+- Use `this` with event listeners, we need to define the `this` keyword in the function, coz the `this` keyword is set to the element that the handler is attached to.
+
+```js
+// with event listeners
+lufthansa.planes = 300;
+lufthansa.buyPlane = function () {
+  this.planes++;
+  console.log(this.planes);
+};
+
+document.querySelector(".buy").addEventListener("click", lufthansa.buyPlane); // the `this` keyword is set to the button element, not the lufthansa object
+// `this` keyword is always set to the element that the handler is attached to
+
+document
+  .querySelector(".buy")
+  .addEventListener("click", lufthansa.buyPlane.bind(lufthansa)); // we can use bind() method to set the `this` keyword to the lufthansa object and return a new function, then call the function with the event handler
+```
+
+- Partial application: a technique that we create a function based on another function, but with some preset parameters
+
+```js
+// partial application: pre-set parameters
+const addTax = (rate, value) => value + value * rate;
+console.log(addTax(0.1, 200));
+
+const addVAT = addTax.bind(null, 0.23); // we don't need to set the `this` keyword, so we set it to null
+console.log(addVAT(100));
+```
+
+It works the same as returning function within a function (higher-order function)
+
+```js
+const addTaxRate = rate => {
+  return value => {
+    reutrn value + value * rate;
+  }
+}
+
+const addVAT2 = addTaxRate(0.23);
+console.log(addVAT2(100));
+```
+
+### 4.7 Immediately Invoked Function Expressions (IIFE)
+
+Sometimes we need a function that is only executed once, and then never again. We can use IIFE to do that.
+
+```js
+// only write the function expression without assigning it to a variable
+// we trick the browser by wrapping the expression in parentheses, coz the browser thinks that anything inside parentheses is an expression
+// don't forget the parentheses at the end of the function expression
+(function () {
+  console.log("This will never run again");
+})();
+```
+
+Also works for arrow functions
+
+```js
+(() => console.log("This will ALSO never run again"))();
+```
+
+In IIFE, all the variables are private, or encapsulated, coz they are scoped to the function, and not accessible from the outside. but in modern JS, block scope is more common.
+
+```js
+(() => {
+  let test = 23;
+  console.log(`IIFE: ${test}`);
+})();
+```
+
+### 4.8 Closures
+
+Basically, a function can have access to the variable environment of the execution context in which it was **created**. Even after that execution context is gone.
+
+```js
+const secureBooking = function () {
+  let passengerCount = 0;
+
+  return function () {
+    passengerCount++;
+    console.log(`${passengerCount} passengers`);
+  };
+};
+const booker = secureBooking();
+booker(); // 1 passengers
+booker(); // 2 passengers
+// even after the secureBooking() function has returned, the booker() function still has access to the passengerCount variable
+```
+
+- after the execution context of secureBooking() function is gone, the variable environment is still stored in the closure
+- the closure has priority over the scope chain. The browser will first look for the variable in the closure, and then the scope chain.
+- A closure makes sure that a function doesn't lose connection to variables that existed at the function's birth place.
+- A closure is like a backpack that a function carries around wherever it goes. This backpack has all the variables that were present in the environment where the function was created. It's not something can be directly accessed, but an internal functionality, it's always there.
+- we can check it by `console.dir(booker)`, and we can see the [[Scopes]] property, which is the closure.
+
+We don't have to let function return another function to create a closure, we can also create a closure by assigning and reassiging a function to a variable.
+
+```js
+// Example 1
+let f;
+const g = function () {
+  const a = 23;
+  f = function () {
+    console.log(a * 2);
+  };
+};
+g();
+f(); // 46
+// even after the execution context of g() function is gone, the f() function still has access to the variable environment of g() function, coz the f() function is a closure
+
+// take it to the next level
+// a function can be "reborn" by assigning it to another variable
+const h = function () {
+  const b = 777;
+  f = function () {
+    console.log(b * 2);
+  };
+};
+g();
+f(); // 46
+h();
+f(); // 1554 // it has the closure where it is last defined
+
+// Example 2
+// after 1000 ms, the execution context of boardPassengers() function is gone, but the callback function still has access to the variable environment of boardPassengers() function within its closure
+const boardPassengers = function (n, wait) {
+  const perGroup = n / 3;
+  setTimeout(function () {
+    console.log(`We are now boarding all ${n} passengers`);
+  }, 1000);
+};
+const perGroup = 1000;
+// still, the callback function would use the perGroup variable in the closure, not the global variable, because the closure has priority over the scope chain
+```
+
+## 5. Working with Arrays
+
+### 5.1 Simple Array Methods
+
+- slice(): returns a new array, it does not mutate the original array
+
+```js
+let arr = ["a", "b", "c", "d", "e"];
+arr.slice(2); // ["c", "d", "e"]
+console.log(arr); // ["a", "b", "c", "d", "e"]
+console.log(arr.slice(-2)); // ["d", "e"]
+console.log(arr.slice(1, -2)); // ["b", "c"], starts from index 1, and ends at index -2, but not including index -2
+console.log(arr.slice(-2)); // ["d", "e"], starts from index -2, and ends at the end of the array
+console.log(arr.slice()); // ["a", "b", "c", "d", "e"], returns a shallow copy of the array
+console.log([...arr]); // works the same as arr.slice()
+```
+
+- splice(): works like slice(), but mutates the original array
+
+```js
+arr.splice(2); // ["c", "d", "e"], returns the removed elements
+console.log(arr); // ["a", "b"] there are only 2 elements left in the array, which are not spliced out
+arr.splice(-1); // remove the last element
+console.log(arr); // ["a"]
+arr = ["a", "b", "c", "d", "e"];
+arr.splice(1, 2); // the 2nd parameter is the number of elements to be removed
+```
+
+- reverse(): mutates the original array
+
+```js
+arr = ["a", "b", "c", "d", "e"];
+const arr2 = ["j", "i", "h", "g", "f"];
+console.log(arr2.reverse()); // ["f", "g", "h", "i", "j"]
+console.log(arr2); // ["f", "g", "h", "i", "j"]
+```
+
+- concat(): does not mutate the original array
+
+```js
+const letters = arr.concat(arr2);
+console.log(letters); // ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]
+console.log([...arr, ...arr2]); // spread and join the 2 arrays // works the same as arr.concat(arr2)
+```
+
+- join(): does not mutate the original array, return a string with the elements joined by the separator
+
+```js
+console.log(letters.join(" - ")); // a - b - c - d - e - f - g - h - i - j
 ```

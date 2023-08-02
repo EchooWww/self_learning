@@ -74,3 +74,23 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
+
+let arr = ['a', 'b', 'c', 'd', 'e'];
+let copy = arr.slice(0, 3);
+copy[1] = 'd';
+console.log(arr);
+console.log(copy);
+arr.splice(2); // ["c", "d", "e"], returns the removed elements
+console.log(arr); // ["a", "b"] there are only 2 elements left in the array, which are not spliced out
+arr.splice(-1); // remove the last element
+console.log(arr); // ["a"]
+arr = ['a', 'b', 'c', 'd', 'e'];
+arr.splice(1, 2); // the 2nd
+console.log(arr);
+const arr2 = ['j', 'i', 'h', 'g', 'f'];
+console.log(arr2.reverse());
+console.log(arr2);
+
+const letters = arr.concat(arr2);
+console.log(letters);
+console.log([...arr, ...arr2]);
