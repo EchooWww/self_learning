@@ -1429,3 +1429,311 @@ console.log([...arr, ...arr2]); // spread and join the 2 arrays // works the sam
 ```js
 console.log(letters.join(" - ")); // a - b - c - d - e - f - g - h - i - j
 ```
+
+### 5.2 the new at the ES6
+
+```js
+const arr = [23, 11, 64];
+console.log(arr[0]);
+console.log(arr.at(0)); // we can replace the traditional bracket notation with the new at() method
+```
+
+- It's particular useful when we want to get the last element/ count from the end of the array
+
+```js
+console.log(arr[arr.length - 1]);
+console.log(arr.slice(-1)[0]); // returns a new array, and we need to get the first element of the new array, works the same as arr.at(-1)
+console.log(arr.at(-1)); // much more concise
+```
+
+- at() method also works with strings
+
+```js
+console.log("Jonas".at(0)); // J
+```
+
+### 5.3 Looping Arrays: forEach()
+
+- Unlike for-of, forEach() method is a higher-order function, it takes a callback function as its parameter. And it is the forEach() method, instead of ourselves, that calls the callback function.
+- We can pass each element, the index, and the whole array to the callback function as its parameters.
+
+```js
+movements.forEach(function (movement) {
+  if (movement > 0) {
+    console.log(`You deposited ${movement}`);
+  } else {
+    console.log(`You withdrew ${Math.abs(movement)}`);
+  }
+});
+
+// we can also pass the index and the whole array to the callback function
+movements.forEach(function (movement, index, array) {
+  // the order of the parameters matters
+  if (movement > 0) {
+    console.log(`Movement ${index + 1}: You deposited ${movement}`);
+  } else {
+    console.log(`Movement ${index + 1}: You withdrew ${Math.abs(movement)}`);
+  }
+});
+
+// we can also use for-of loop to loop through the array, but need to destruct the array of entries, and the order of the destructed array is different from the forEach() method
+for (const [index, movement] of movements.entries()) {
+  if (movement > 0) {
+    console.log(`Movement ${index + 1}: You deposited ${movement}`);
+  } else {
+    console.log(`Movement ${index + 1}: You withdrew ${Math.abs(movement)}`);
+  }
+}
+```
+
+- forEach() method cannot break or continue the loop, it will always loop through the whole array
+
+### 5.4 forEach() with Maps and Sets
+
+- When we call forEach() method for a map, it will pass 3 parameters to the callback function: (value, key, map), which are corresponding to the parameters of forEach() method for an array: (element, index, array)
+
+```js
+const currencies = new Map([
+  ["USD", "United States dollar"],
+  ["EUR", "Euro"],
+  ["GBP", "Pound sterling"],
+]);
+currencies.forEach(function (value, key, map) {
+  console.log(`${key}: ${value}`);
+});
+```
+
+- And for a set, the callback function will still have 3 parameters,but the key is the same as the value, because a set does not have keys
+
+```js
+const currenciesUnique = new Set(["USD", "GBP", "USD", "EUR", "EUR"]);
+console.log(currenciesUnique);
+currenciesUnique.forEach(function (value, key, map) {
+  console.log(`${key}: ${value}`);
+}); // the key is the same as the value
+```
+
+### 5.5 Creating DOM elements
+
+- It's always the best practice to wrap code within a function, instead of writing the code directly in the global scope
+- insertAdjacentHTML() method: accept 2 strings as its parameters, the first one is the position, and the second one is the HTML string
+  - If we use beforeend with a forEach() to loop through the array, the elements will be added in the same order as they are in the array
+  - On the contrary, if we use afterbegin, the elements will be added in the reverse order as they are in the array
+
+```html
+<!-- before begin -->
+<p>
+  <!-- after begin -->
+  foo
+  <!-- before end -->
+</p>
+<!-- after end -->
+```
+
+- empty a container: container.innerHTML = '';
+- it's great to create DOM elements with literal templates
+
+```js
+const displayMovements = function (movements) {
+  containerMovements.innerHTML = "";
+  movements.forEach(function (mov, i) {
+    const type = mov > 0 ? "deposit" : "withdrawal";
+    const html = `        
+    <div class="movements__row">
+      <div class="movements__type movements__type--${type}">${
+      i + 1
+    } ${type}</div>
+      <div class="movements__value">${mov}€</div>
+    </div>`;
+    containerMovements.insertAdjacentHTML("afterbegin", html);
+  });
+};
+```
+
+### 5.6 Data Transformations: map(), filter(), reduce()
+
+- map(): returns a new array containing the results of applying an operation on all original array elements, quite similar to forEach() method, but the difference is that map() method returns a new array, instead of mutating the original array
+
+💡 map() can also take the same 3 parameters as forEach() method: (element, index, array)
+
+```js
+const eurToUsd = 1.1;
+// it's nice we can write the callback function in one line with arrow functions
+const movementsUSD = movements.map((mov) => mov * eurToUsd);
+
+const movementsDescriptions = movements.map((mov, i) => {
+  return `Movement ${i + 1}: You ${
+    mov > 0 ? "deposited" : "withdrew"
+  } ${Math.abs(mov)}`;
+});
+
+// the main difference between map() and forEach() is that map() returns a new array, instead of mutating the original array, and forEach() can do some mutation without returning anything
+const createUsernames = function (accs) {
+  // forEach() is used to add a new property to each element of the array
+  accs.forEach((acc) => {
+    acc.username = acc.owner
+      .toLowerCase()
+      .split(" ")
+      // map is used to return a new array for further joining
+      .map((name) => name[0])
+      .join("");
+  });
+};
+
+createUsernames(accounts);
+```
+
+- filter(): returns a new array containing the array elements that passed a specified test condition
+
+```js
+const deposits = movements.filter((mov) => mov > 0);
+```
+
+- reduce(): boils ("reduces") all array elements down to one single value (e.g. adding all elements together). It's not limited to sum, we can do anything with reduce() method, such as calculating the maximum value, or the average value, etc.
+
+💡 Unlike forEach(), map() or filter(), reduce takes 4 parameters in the callback function: (accumulator, current element, index, array), and inside the callback function, and a second parameter after the callback function, which is the initial value of the accumulator
+
+```js
+const balance = movements.reduce((acc, cur) => {
+  console.log(`iteration ${i}: ${acc}`);
+  return acc + cur;
+}, 0);
+
+// get the maximum value
+const max = movements.reduce(
+  // in each iteration, we return teh bigger one, and the bigger one will be the accumulator in the next iteration
+  (acc, mov) => (acc > mov ? acc : mov),
+  // we need to set the initial value of the accumulator to the first element of the array, instead of 0
+  movements[0]
+);
+console.log(max);
+```
+
+### 5.7 The Magic of Chaining Methods
+
+Using the 3 methods in chaining is like a pipeline, and the order of the methods is important, because the output of the previous method will be the input of the next method
+
+```js
+const totalDepositsUSD = movements
+  .filter((mov) => mov > 0)
+  .map((mov) => mov * eurToUsd)
+  .reduce((acc, mov) => acc + mov, 0);
+console.log(totalDepositsUSD);
+// and if we wanna debug the code, we can always use the array parameter in the callback function of each method
+```
+
+### 5.8 find() method
+
+- find() method is used to find the first element in the array that satisfies the condition, unlike filter(), which returns a new array containing all the elements that satisfy the condition
+- Also, if the found element is an object, we can directly use the dot notation to access its properties because we're getting the element itself, ratehr than a copy of the element
+
+```js
+console.log(accounts);
+const account = accounts.find((acc) => acc.owner === "Jessica Davis"); // once the condition is satisfied, the find() method will stop the iteration and return the element
+console.log(account); // {owner: "Jessica Davis", movements: Array(8), interestRate: 1.5, pin: 2222, username: "jd"}
+```
+
+### 5.9 findIndex() method
+
+- findIndex() method is used to find the index of the first element in the array that satisfies the condition, unlike find(), which returns the element itself
+- it works quite similar like indexOf(), but it takes a callback function as its parameter, instead of a value, and also it can work in both arrays and objects
+
+```js
+if (
+    inputCloseUsername.value === currentAccount.username &&
+    Number(inputClosePin.value) === currentAccount.pin
+  ) {
+    const index = accounts.findIndex(
+      acc => acc.username === currentAccount.username
+    );
+    accounts.splice(index, 1);
+```
+
+### 5.10 includes(), some() and every() methods
+
+- includes() can check if an array includes a certain value, and it returns a boolean value
+- some() checks if at least one element in the array satisfies the condition, and it returns a boolean value
+- every() checks if all the elements in the array satisfy the condition, and it returns a boolean value
+
+💡 The main difference is: includes() can only check equality, but some() and every() can check any condition
+
+```js
+// SOME: if any element in the array satisfies the condition, then return true
+if (amount > 0 && currentAccount.movements.some((mov) => mov >= amount * 0.1)) {
+  currentAccount.movements.push(amount);
+  updateUI(currentAccount);
+  inputLoanAmount.value = "";
+}
+// EVERY: if every element in the array satisfies the condition, then return true
+console.log(account4.movements.every((mov) => mov > 0)); // prints true because all the elements are positive
+
+// Separate callback
+const deposit = (mov) => mov > 0;
+console.log(account4.movements.some(deposit)); // prints true
+```
+
+### 5.11 flat() and flatMap() methods
+
+- flat() method is used to flatten nested arrays into one single array, it only goes one level deep, and it can take a parameter to specify the depth of the nested arrays
+
+```js
+const arr = [[1, 2, 3], [4, 5, 6], 7, 8];
+console.log(arr.flat()); // [1, 2, 3, 4, 5, 6, 7, 8]
+const arrDeep = [[[1, 2], 3], [4, [5, 6]], 7, 8];
+console.log(arrDeep.flat()); // [Array(2), 3, 4, Array(2), 7, 8]
+
+// the depth parameter
+console.log(arrDeep.flat(2)); // [1, 2, 3, 4, 5, 6, 7, 8]
+
+// In practice: it's a common use case to first map() and then flat()
+const accountMovements = accounts
+  .map((acc) => acc.movements)
+  .flat()
+  .reduce((acc, mov) => acc + mov, 0); // 17840
+```
+
+- flatMap() method is used to combine map() and flat() methods together, and it only goes one level deep
+
+❕ flatMap() only goes one level deep, so if we have a nested array inside a nested array, we still need to use flat() method
+
+```js
+const accountMovements = accounts
+  .flatMap((acc) => acc.movements)
+  .resuce((acc, mov) => acc + mov, 0);
+```
+
+### 5.12 Sorting Arrays
+
+- `sort()` method is used to sort the elements in the array, and it **❗️mutates** the original array, so use slice() method to create a copy of the array before sorting it
+- `sort()` method does the sorting by converting all the elements into **strings**, and then compare the strings alphabetically: to handle this, we pass a callback function as the parameter of the `sort()` method, and in the callback function, we can specify the sorting condition
+
+```js
+// compare numbers in ascending order
+movements.sort((a, b) => a - b);
+// compare numbers in descending order
+movements.sort((a, b) => b - a);
+```
+
+### 5.13 More Ways of Creating and Filling Arrays
+
+- fill() method is used to fill the array with a certain value, and it mutates the original array
+
+```js
+const x = new Array(7); // [empty × 7]
+x.fill(1); // [1, 1, 1, 1, 1, 1, 1]
+// the 2nd and 3rd parameters are the start and end index
+x.fill(1, 3); // [empty × 3, 1, 1, 1]
+x.fill(1, 3, 5); // [empty × 3, 1, 1, empty × 2]
+// fill() can also mutate an existing array
+const arr = [1, 2, 3, 4, 5, 6, 7];
+arr.fill(23, 2, 6); // [1, 2, 23, 23, 23, 23, 7]
+```
+
+- Array.from() method. 1st parameter: the length of the array, 2nd parameter: a callback function that returns the value of each element in the array
+
+```js
+Array.from({ length: 7 }, () => 1); // [1, 1, 1, 1, 1, 1, 1]
+
+// works like map()
+const z = Array.from({ length: 7 }, (cur, i) => i + 1); // [1, 2, 3, 4, 5, 6, 7]
+```
