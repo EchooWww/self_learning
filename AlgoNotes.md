@@ -734,6 +734,7 @@ class Solution {
 - The conditions of returning -1 are similar to the previous question. This time we check `right` instead of `left`, whether `right ` is equal to `-1` or `nums[right] != target`.
 
 > [Leetcode 34. Find First and Last Position of Element in Sorted Array (Medium)](https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
+> 💡 In this problem, we need to pay attention to check whether `nums[left/right] == target` and whether left/right is out of bound
 
 ```java
 class Solution {
@@ -765,6 +766,98 @@ class Solution {
     }
 }
 
+```
+
+### Binary Search in non-array problems
+
+- Binary search can be used in non-array problems as well. As long as we know the result lies in a certain range with a monotonic property, we can use binary search to find the result.
+  > [Leetcode 69. Sqrt(x) (Easy)](https://leetcode.com/problems/sqrtx/)
+
+```java
+class Solution {
+    public int mySqrt(int x) {
+        int left = 0, right = x;
+        while(left <= right) {
+            int mid = left + (right - left) / 2;
+            // as mid is the divisor, we need to check if it is 0
+            if (mid == 0) return right;
+            // we need to use x / mid to avoid overflow
+            if (mid == x/mid) return mid;
+            if (mid < x/mid) left = mid + 1;
+            else right = mid - 1;
+        }
+        // as we want the floor of the square root, we return right(which is smaller when the loop terminates)
+        return right;
+    }
+}
+```
+
+> [Leetcode 875. Koko Eating Bananas (Medium)](https://leetcode.com/problems/koko-eating-bananas/)
+> 💡 We can solve this kind of problem by convert the result as a parameter of another function, and use binary search to find the the maximum/minimum value that satisfies the condition.
+
+```java
+class Solution {
+    public int minEatingSpeed(int[] piles, int h) {
+        Arrays.sort(piles);
+        int n = piles.length;
+        int lo = 1;
+        int hi = piles[n-1];
+        while(hi >= lo) {
+            int mid = lo + (hi-lo) / 2;
+            if (getHour(piles, mid) > h) lo = mid + 1;
+            else if (getHour(piles, mid) <= h) hi = mid - 1;
+        }
+        // it's like find the first target, so we return lo
+        return lo;
+    }
+
+    // we want the minimum speed when hours is given, so we add a new function to calculate the hours when speed is given
+    public int getHour(int[] piles, int speed) {
+        int hours= 0;
+        for(int pile:piles) {
+            hours += Math.ceil((double)pile/speed);
+        }
+        return hours;
+    }
+}
+
+```
+
+> [Leetcode 2616. Minimum Limit of Balls in a Bag (Hard)](https://leetcode.com/problems/minimum-limit-of-balls-in-a-bag/)
+> 💡 This problem is like koko eating bananas, we are to find the minimum of biggest diff given the pair, so we write a helper function which can calculate the pair based on our result.
+
+```java
+class Solution {
+    public int minimizeMax(int[] nums, int p) {
+        if (p==0) return 0;
+        Arrays.sort(nums);
+        int lo = 0, n = nums.length, hi = nums[n-1] - nums[0];
+        while(lo <= hi) {
+            int mid = lo + (hi - lo) / 2;
+            // if the number of pairs is greater than p, we can decrease the maximum difference
+            if (solve(nums, mid, p)) hi = mid - 1;
+            // if the number of pairs is less than p, we need to increase the maximum difference
+            else lo = mid + 1;
+        }
+        // return the left boundary
+        return lo;
+    }
+
+    public boolean solve (int[] nums, int limit, int pair) {
+        int len = nums.length;
+        int count = 0;
+        // the maximum pairs we can get is start from index 0
+        for (int i = 0; i < len - 1; i++) {
+            if (nums[i + 1] - nums[i] <= limit) {
+                // we we find a pair satisfies the condition, we move the index one more step to avoid duplicate elements
+                count++;
+                i++;
+            }
+            if (count == pair) return true;
+        }
+        return false;
+    }
+}
 ```
 
 # Hash Methods
