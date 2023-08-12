@@ -993,13 +993,13 @@ Backpack problem is a kind of optimization problem. We need to find the maximum 
 
 ### 0-1 backpack: Status transition formula
 
-    ```java
-    for (int i = 1; i <= n; i++) {
-        for (int j = 1; j <= capacity; j++) {
-            dp[i][j] = Math.max(dp[i - 1][j], dp[i - 1][j - weight[i-1]] + value[i-1]); // find the maximum value of 2 cases: put or not put the item into the backpack
-        }
+```java
+for (int i = 1; i <= n; i++) {
+    for (int j = 1; j <= capacity; j++) {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i - 1][j - weight[i-1]] + value[i-1]); // find the maximum value of 2 cases: put or not put the item into the backpack
     }
-    ```
+}
+```
 
 ### Subset backpack
 
