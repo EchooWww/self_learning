@@ -983,6 +983,71 @@ int coinChange(int[] coins, int amount) {
 
 ```
 
+## Backpack problem 背包问题
+
+Backpack problem is a kind of optimization problem. We need to find the maximum value of the items that can be put into the backpack. The backpack has a maximum capacity. The items have different weights and values.
+
+- Status of the problem: the capacity of the backpack and items can be put into the backpack
+- Choice: whether to put the item into the backpack or not
+- dp array definition: dp[i][j] represents the maximum value of the items that can be put into the backpack with capacity of j, and the items are the first i items. We want to find dp[n][capacity]
+
+### 0-1 backpack: Status transition formula
+
+    ```java
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= capacity; j++) {
+            dp[i][j] = Math.max(dp[i - 1][j], dp[i - 1][j - weight[i-1]] + value[i-1]); // find the maximum value of 2 cases: put or not put the item into the backpack
+        }
+    }
+    ```
+
+### Subset backpack
+
+> [Leetcode 416. Partition Equal Subset Sum (Medium)](https://leetcode.com/problems/partition-equal-subset-sum/)
+> 💡 Convert the problem: partition equal subset = use some elements to exact fill half backpack
+
+```java
+class Solution {
+    public boolean canPartition(int[] nums) {
+        int sum = 0, n = nums.length;
+        // calculate the volume of the backpack
+        for(int num: nums) sum+=num;
+        // if the sum is odd, we can't divide the array into 2 subsets
+        if (sum%2 == 1) return false;
+
+        // initialize the dp array
+        boolean[][] dp = new boolean[n+1][sum/2+1];
+        // when the sum is 0, we can always find a subset
+        for(int k = 0; k <= n; k++) {
+            dp[k][0] = true;
+        }
+        // traverse the array from index 1
+        // definition of dp array: dp[i][j] represents whether we can find a subset in the first i numbers that can fill the backpack with volume of j
+        for(int i = 1; i <= n; i++) {
+            for (int j = 1; j <= sum/2; j++) {
+                // if backpack volume is greater than the current number, we can consider 2 cases: put or not put the current number into the backpack
+                if (j>=nums[i-1]) {
+                    // put || not put, either case is true
+                    dp[i][j] = dp[i-1][j] || dp[i-1][j-nums[i-1]];
+                // if the current number is greater than the volume, we can't put it into the backpack
+                } else {
+                    dp[i][j] = dp[i-1][j];
+                }
+            }
+        }
+        return dp[n][sum/2];
+    }
+}
+```
+
+### Complete backpack
+
+> [Leetcode 518. Coin Change 2 (Medium)](https://leetcode.com/problems/coin-change-2/)
+> 💡 Complete backpack: elements cab be reused, so `dp[i][j] = dp[i-1][j] + dp[i]j-coins[i-1]]` instead of `dp[i][j] = dp[i-1][j] + dp[i-1]j-coins[i-1]]`
+
+````java
+
+
 # Backtracking
 
 - Backtracking and recursion are very similar. The difference is that backtracking is a kind of recursion. It is a method of **exhaustive** search. It is a method of searching for all possible solutions by traversing the search space. It is often used to find all possible solutions to a problem.
@@ -1019,7 +1084,7 @@ void backtrack (路径，选择列表){
         撤销选择;
     }
 }
-```
+````
 
 ## Examples
 
