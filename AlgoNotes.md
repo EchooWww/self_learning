@@ -1045,8 +1045,30 @@ class Solution {
 > [Leetcode 518. Coin Change 2 (Medium)](https://leetcode.com/problems/coin-change-2/)
 > 💡 Complete backpack: elements cab be reused, so `dp[i][j] = dp[i-1][j] + dp[i]j-coins[i-1]]` instead of `dp[i][j] = dp[i-1][j] + dp[i-1]j-coins[i-1]]`
 
-````java
-
+```java
+class Solution {
+    public int change(int amount, int[] coins) {
+        int n = coins.length;
+        // defition of dp array: dp[i][j] means the number of possibilities of how first i coins can fill the backpack with volume of j (1-indexed)
+        int dp[][] = new int[n + 1][amount + 1];
+        for (int i = 0; i <= n; i++) {
+            dp[i][0] = 1;
+        }
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= amount; j++) {
+                if (j >= coins[i-1]) {
+                    // coins can be reused, and as the definition of dp array is number of possibilities, we need to add the 2 cases together
+                    dp[i][j] = dp[i-1][j] + dp[i][j-coins[i-1]];
+                } else {
+                    // when the remaining volume is less than the current coin, we can't put the current coin into the backpack
+                    dp[i][j] = dp[i-1][j];
+                }
+            }
+        }
+        return dp[n][amount];
+    }
+}
+```
 
 # Backtracking
 
@@ -1084,7 +1106,7 @@ void backtrack (路径，选择列表){
         撤销选择;
     }
 }
-````
+```
 
 ## Examples
 
