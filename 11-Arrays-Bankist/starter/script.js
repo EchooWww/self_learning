@@ -319,36 +319,6 @@ btnSort.addEventListener('click', e => {
 //   console.log(`${key}: ${value}`);
 // });
 
-// const checkDogs = function (dogsJulia, dogsKate) {
-//   const juliaCopy = dogsJulia.slice();
-//   juliaCopy.splice(0, 1);
-//   juliaCopy.splice(-2);
-//   const allDogs = [...juliaCopy, ...dogsKate];
-//   // const allDogs = juliaCopy.concat(dogsKate);
-//   allDogs.forEach((age, i) => {
-//     const adult =
-//       age >= 3 ? `an adult, and is ${age} years old` : 'still a puppy 🐶';
-//     console.log(`Dog number ${i + 1} is ${adult}`);
-//   });
-// };
-
-// const dogaJulia1 = [3, 5, 2, 12, 7];
-// const dogsKate1 = [4, 1, 15, 8, 3];
-// const dogsJulia2 = [9, 16, 6, 8, 3];
-// const dogsKate2 = [10, 5, 6, 1, 4];
-
-// checkDogs(dogaJulia1, dogsKate1);
-// checkDogs(dogsJulia2, dogsKate2);
-
-// const calcAverageHumanAge = ages => {
-//   const humanAge = ages
-//     .map(age => (age > 2 ? 16 + age * 4 : 2 * age))
-//     .filter(age => age >= 18)
-//     .reduce((acc, dog, i, arr) => acc + dog / arr.length, 0);
-// };
-// calcAverageHumanAge([5, 2, 4, 1, 15, 8, 3]);
-// calcAverageHumanAge([16, 6, 10, 5, 6, 1, 4]);
-
 // const firstWithdrawal = movements.find(mov => mov < 0);
 // console.log(movements);
 // console.log(firstWithdrawal);
@@ -385,7 +355,153 @@ btnSort.addEventListener('click', e => {
 // const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 // console.log(movements.sort((a, b) => a - b));
 // console.log(movements.sort((a, b) => b - a));
-const y = Array.from({ length: 7 }, () => 1);
-console.log(y);
-const z = Array.from({ length: 8 }, (cur, i) => i + 1);
-console.log(z);
+// const y = Array.from({ length: 7 }, () => 1);
+// console.log(y);
+// const z = Array.from({ length: 8 }, (_, i) => i + 1);
+// console.log(z);
+
+// const x = Array.from({ length: 100 }, () => Math.floor(Math.random() * 6 + 1));
+// console.log(x);
+
+// labelBalance.addEventListener('click', () => {
+//   const movementsUI = Array.from(
+//     document.querySelectorAll('.movements__value'),
+//     el => Number(el.textContent.replace('€', ''))
+//   );
+
+//   console.log(movementsUI);
+//   const movementsUI2 = [...document.querySelectorAll('.movements_value')];
+// });
+
+// 1. Get the sum of deposit in the bank
+const bankDepositSum = accounts
+  .flatMap(acc => acc.movements)
+  .filter(mov => mov > 0)
+  .reduce((acc, mov) => acc + mov);
+
+console.log(bankDepositSum);
+
+// 2.
+// const numDeposits1000 = accounts
+//   .flatMap(acc => acc.movements)
+//   .filter(mov => mov >= 1000).length;
+
+const numDeposits1000 = accounts
+  .flatMap(acc => acc.movements)
+  // Prefix ++
+  .reduce((acc, mov) => (mov >= 1000 ? ++acc : acc), 0);
+console.log(numDeposits1000);
+
+// 3.
+const { deposits, withdraws } = accounts
+  .flatMap(acc => acc.movements)
+  .reduce(
+    (sums, cur) => {
+      // cur > 0 ? (sums.deposits += cur) : (sums.withdraws += Math.abs(cur));
+      sums[cur > 0 ? 'deposits' : 'withdraws'] += cur;
+      return sums;
+    },
+    { deposits: 0, withdraws: 0 }
+  );
+console.log(deposits, withdraws);
+
+// 4.
+const convertTitleCase = title => {
+  const capitalize = str => str[0].toUpperCase() + str.slice(1);
+  const exceptions = ['a', 'an', 'the', 'and', 'but', 'or', 'on', 'in', 'with'];
+  const titleCase = title
+    .toLowerCase()
+    .split(' ')
+    .map(word => (exceptions.includes(word) ? word : capitalize(word)))
+    .join(' ');
+  return capitalize(titleCase);
+};
+
+console.log(convertTitleCase('this is a nice title'));
+console.log(convertTitleCase('and here is another title with an EXAMPLE'));
+
+// // Coding Challenges
+// const checkDogs = function (dogsJulia, dogsKate) {
+//   const juliaCopy = dogsJulia.slice();
+//   juliaCopy.splice(0, 1);
+//   juliaCopy.splice(-2);
+//   const allDogs = [...juliaCopy, ...dogsKate];
+// const allDogs = juliaCopy.concat(dogsKate);
+//   allDogs.forEach((age, i) => {
+//     const adult =
+//       age >= 3 ? `an adult, and is ${age} years old` : 'still a puppy 🐶';
+//     console.log(`Dog number ${i + 1} is ${adult}`);
+//   });
+// };
+
+// const dogaJulia1 = [3, 5, 2, 12, 7];
+// const dogsKate1 = [4, 1, 15, 8, 3];
+// const dogsJulia2 = [9, 16, 6, 8, 3];
+// const dogsKate2 = [10, 5, 6, 1, 4];
+
+// checkDogs(dogaJulia1, dogsKate1);
+// checkDogs(dogsJulia2, dogsKate2);
+
+// const calcAverageHumanAge = ages => {
+//   const humanAge = ages
+//     .map(age => (age > 2 ? 16 + age * 4 : 2 * age))
+//     .filter(age => age >= 18)
+//     .reduce((acc, dog, i, arr) => acc + dog / arr.length, 0);
+// };
+// calcAverageHumanAge([5, 2, 4, 1, 15, 8, 3]);
+// calcAverageHumanAge([16, 6, 10, 5, 6, 1, 4]);
+
+// Coding Challenge #4
+const dogs = [
+  { weight: 22, curFood: 250, owners: ['Alice', 'Bob'] },
+  { weight: 8, curFood: 200, owners: ['Matilda'] },
+  { weight: 13, curFood: 275, owners: ['Sarah', 'John'] },
+  { weight: 32, curFood: 340, owners: ['Michael'] },
+];
+
+// 1.
+dogs.forEach(dog => {
+  dog.recommendedFood = dog.weight ** 0.75 * 28;
+});
+
+// 2.
+const dogsSarah = dogs.find(dog => dog.owners.includes('Sarah'));
+
+console.log(
+  `Sarah's dog is eating ${
+    dogsSarah.curFood > dogsSarah.recommendedFood ? 'too much' : 'too little'
+  }`
+);
+
+// 3.
+const ownersEatTooMuch = dogs
+  .filter(dog => dog.curFood > 1.1 * dog.recommendedFood)
+  .flatMap(dog => dog.owners);
+
+const ownersEatTooLittle = dogs
+  .filter(dog => dog.curFood < 0.9 * dog.recommendedFood)
+  .flatMap(dog => dog.owners);
+
+// 4.
+console.log(`${ownersEatTooMuch.join(' and ')}'s dogs eat too much!`);
+console.log(`${ownersEatTooLittle.join(' and ')}'s dogs eat too little!`);
+
+// 5.
+console.log(dogs.some(dog => dog.curFood === dog.recommendedFood));
+
+// 6.
+const checkEatingOkay = dog =>
+  dog.curFood >= 0.9 * dog.recommendedFood &&
+  dog.curFood <= 1.1 * dog.recommendedFood;
+
+console.log(dogs.some(dog => checkEatingOkay(dog)));
+
+// 7.
+const dogsEatingOkay = dogs.filter(dog => checkEatingOkay(dog));
+console.log(dogsEatingOkay);
+
+// 8.
+const sortedDogs = dogs
+  .slice()
+  .sort((a, b) => a.recommendedFood - b.recommendedFood);
+console.log(sortedDogs);

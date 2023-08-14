@@ -1735,5 +1735,398 @@ arr.fill(23, 2, 6); // [1, 2, 23, 23, 23, 23, 7]
 Array.from({ length: 7 }, () => 1); // [1, 1, 1, 1, 1, 1, 1]
 
 // works like map()
-const z = Array.from({ length: 7 }, (cur, i) => i + 1); // [1, 2, 3, 4, 5, 6, 7]
+const z = Array.from({ length: 7 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6, 7]
+
+// create 100 random dice rolls
+const diceRolls = Array.from({ length: 100 }, () =>
+  Math.trunc(Math.random() * 6 + 1)
+);
 ```
+
+- we can also use Array.from() method to convert a NodeList from the DOM into an array
+
+```js
+labelBalance.addEventListener("click", () => {
+  const movementsUI = Array.from(
+    document.querySelectorAll(".movements__value"),
+    (el) => Number(el.textContent.replace("€", ""))
+  );
+
+  console.log(movementsUI);
+});
+
+// or use spread operator
+const movementsUI2 = [...document.querySelectorAll(".movements_value")].map(
+  (el) => Number(el.textContent.replace("€", ""))
+);
+```
+
+### 5.14 Summary: Array Methods Practice
+
+> ❓ Which array method should we use in each situation?
+
+There are many different scenarios:
+
+- to mutate the original array
+  |add to original array|remove from original array|other|
+  |---|---|---|
+  |push()|pop()|reverse()|
+  |unshift()|shift()|sort()|
+  |splice()|splice()|fill()|
+
+- to get a new array
+  | compute from original | filter | portion | concat | flatten|
+  |---|---|---|---|---|
+  | map() | filter() | slice() | concat() | flat() |
+  |||||flatMap()|
+- to get the index of an element
+  |based on value|based on condition|
+  |---|---|
+  |indexOf()|findIndex()|
+- know if an array includes a certain value: returns a boolean
+  | based on value | based on condition |
+  |---|---|
+  | includes() | some() |
+  ||every()|
+- to transform to a value: `reduce()`
+- to get an array element: `find()`
+- to get a new string:` join()`
+- to just loop over an array: `forEach()` -- does not create a new array or any value
+
+# 5.15 Array Methods Practice
+
+We can use `reduce()`method not only for numbers, but also initialize an object and mutate it in the callback function
+
+```js
+const { deposits, withdraws } = accounts
+  .flatMap((acc) => acc.movements)
+  .reduce(
+    (sums, cur) => {
+      // cur > 0 ? (sums.deposits += cur) : (sums.withdraws += Math.abs(cur));
+      sums[cur > 0 ? "deposits" : "withdraws"] += cur;
+      return sums;
+    },
+    { deposits: 0, withdraws: 0 }
+  );
+console.log(deposits, withdraws);
+```
+
+## 6. Numbers, Dates, Intl and Timers
+
+### 6.1 Converting and Checking Numbers
+
+> 💡 In javascript, all numbers are represented internally as floating point numbers. That's why we only have one data type for numbers in JS
+
+- Numbers are represented as 64-bits binary floating point numbers (IEEE 754 standard)
+
+```js
+console.log(23 === 23.0); // true
+console.log(0.1 + 0.2); // 0.30000000000000004, because 0.1 and 0.2 cannot be represented exactly in binary floating point numbers
+console.log(0.1 + 0.2 === 0.3); // false
+
+// convert string to number
+console.log(Number("23")); // 23, or easier, just a plus sign before the string
+console.log(+"23"); // 23
+
+// Parsing: useful for cases we we have extra characters in the string
+console.log(Number.parseInt("30px")); // 30
+// pass the base as the 2nd parameter
+console.log(Number.parseInt("30px", 10)); // 30
+console.log(Number.parseInt("30px", 2)); // NaN
+// parse float
+console.log(Number.parseFloat("2.5rem")); // 2.5
+console.log(Number.parseInt("2.5rem")); // 2, stops at the decimal point
+
+// isNaN() method
+console.log(Number.isNaN(20)); // false
+console.log(Number.isNaN("20")); // false
+console.log(Number.isNaN(+"20X")); // true
+console.log(Number.isNaN(23 / 0)); // false, but not accurate, it's a infinite value
+
+// isFinite() method
+console.log(Number.isFinite(20)); // true
+console.log(Number.isFinite("20")); // false
+console.log(Number.isFinite(+"20X")); // false
+console.log(Number.isFinite(23 / 0)); // false, because it's infinite
+
+// isInteger() method
+console.log(Number.isInteger(23)); // true
+console.log(Number.isInteger(23.0)); // true, 23.0 is still 23
+console.log(Number.isInteger(23 / 0)); // false, because it's infinite
+```
+
+### 6.2 Math and Rounding
+
+There are many useful methods and constants in the Math object
+
+```js
+// square root
+console.log(Math.sqrt(25)); // 5
+console.log(25 ** (1 / 2)); // 5
+// cube root
+console.log(8 ** (1 / 3)); // 2
+
+// max and min
+console.log(Math.max(5, 18, 23, 11, 2)); // 23
+console.log(Math.max(5, 18, "23", 11, 2)); // 23
+
+// area of a circle
+console.log(Math.PI * Number.parseFloat("10px") ** 2); // 314.1592653589793
+
+// random(returns a random number between 0 and 1), trunc(returns the integer part of a number)
+console.log(Math.trunc(Math.random() * 6) + 1); // 1 ~ 6
+
+// randomInt (returns a random integer between 2 numbers)
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min)) + min;
+// Rounding integers
+console.log(Math.trunc(23.3)); // 23, remove the decimal part
+console.log(Math.round(23.3)); // 23, round to the nearest integer
+console.log(Math.round(23.9)); // 24
+console.log(Math.ceil(23.3)); // 24, round up
+console.log(Math.ceil(23.9)); // 24
+console.log(Math.floor(23.3)); // 23, round down
+console.log(Math.floor(23.9)); // 23
+// the difference between trunc() and floor(): when the number is negative, trunc() returns the next integer, but floor() returns the previous integer
+console.log(Math.trunc(-23.3)); // -23
+console.log(Math.floor(-23.3)); // -24
+
+// Rounding decimals, boxing converts a primitive value to an object
+console.log((2.7).toFixed(0)); // 3, returns a string
+console.log((2.7).toFixed(3)); // 2.700
+console.log((2.345).toFixed(2)); // 2.35, round up
+console.log(+(2.345).toFixed(2)); // 2.35, convert the string to a number
+```
+
+### 6.3 The Remainder Operator
+
+- `%` is the remainder operator, it returns the remainder of a division
+
+```js
+console.log(5 % 2); // 1
+console.log(8 % 3); // 2
+console.log(6 % 2); // 0
+```
+
+- It's a good practice to use remainer operator if we want to do something every n times
+
+```js
+labelBalance.addEventListener("click", () => {
+  [...document.querySelectorAll(".movements__row")].forEach((row, i) => {
+    if (i % 2 === 0) {
+      row.style.backgroundColor = "orange";
+    }
+    if (i % 3 === 0) {
+      row.style.backgroundColor = "blue";
+    }
+  });
+});
+```
+
+### 6.4 Numeric separators
+
+- From ES2021, we can use `_` to separate numbers, which is very useful for large numbers
+
+```js
+// the engine will ignore the underscores
+const num = 100_000_000;
+console.log(num); // 100000000
+```
+
+- We can not only use `_` in the thousands place, we can basically use it everywhere, except for the beginning or the end of a number, or before or after the decimal point
+- We should not use `_` in a string, coz when we try to convert the string to a number, the engine will throw an error of NaN
+
+### 6.5 Working with BigInt
+
+- With 63 digits, there's a limit for the maximum number that can be represented in JS, which is 2^53 - 1, and if we want to represent a larger number, we can use BigInt
+- to use BigInt, we need to add `n` at the end of the number
+
+```js
+console.log(48384302234234234234n); // 48384302234234234234n
+console.log(BigInt(48384302234234234234)); // 48384302234234234234n
+
+// calculations are the same rule, but we cannot mix BigInt with regular numbers
+console.log(10000n + 10000n); // 20000n
+console.log(48384302234234234234n * 100000n); // 4838430223423423423400000n
+// division is different
+console.log(10n / 3n); // 3n, it returns the integer part
+// we can use comparison operators
+console.log(20n > 15); // true
+console.log(20n === 20); // false
+
+// we can also do string concatenation
+console.log(20n + " is really big"); // 20 is really big
+
+// math methods don't work for BigInt
+console.log(Math.sqrt(16n)); // TypeError: Cannot convert a BigInt value to a number
+```
+
+### 6.6 Creating Dates
+
+- There are 4 ways to create a date
+
+```js
+// 1. create a date without any parameters
+const now = new Date();
+console.log(now); // Sun Aug 02 2020 17:50:41 GMT-0700 (Pacific Daylight Time)
+
+// 2. create a date from a string: quiet unreliable, unless string is created by JS
+const now = new Date("Aug 02 2020 18:05:41");
+console.log(now); // Sun Aug 02 2020 18:05:41 GMT-0700 (Pacific Daylight Time)
+
+// 3. create a date from a number
+console.log(new Date(2037, 10, 19, 15, 23, 5)); // Tue Nov 19 2037 16:23:05 GMT-0700 (Pacific Daylight Time)
+// javascript auto-correction
+console.log(new Date(2037, 10, 31)); // Sun Dec 01 2037 00:00:00 GMT-0800 (Pacific Standard Time)
+console.log(new Date(0)); // Thu Jan 01 1970 00:00:00 GMT-0800 (Pacific Standard Time)
+
+// 4. create a date from a timestamp
+console.log(new Date(3 * 24 * 60 * 60 * 1000)); // Sun Jan 04 1970 00:00:00 GMT-0800 (Pacific Standard Time)
+```
+
+- Working with dates
+
+```js
+// working with dates
+const future = new Date(2037, 10, 19, 15, 23, 5); // Tue Nov 19 2037 16:23:05 GMT-0700 (Pacific Daylight Time)
+console.log(future.getFullYear()); // 2037
+console.log(future.getMonth()); // 10, November
+console.log(future.getDate()); // 19
+console.log(future.getDay()); // 2, Tuesday
+console.log(future.getHours());
+console.log(future.getMinutes());
+console.log(future.getSeconds());
+console.log(future.toISOString()); // 2037-11-20T00:23:05.000Z
+```
+
+- timestamps: the number of milliseconds that have passed since January 1st, 1970. We can get the timestamp of now by `Date.now()`
+
+```js
+// there are set methods for each of the get methods
+future.setFullYear(2040);
+// 🟡 getMonth() method returns the month index, so we need to add 1 to get the actual month
+
+console.log(future); // Sat Nov 19 2040 16:23:05 GMT-0800 (Pacific Standard Time)
+```
+
+- toISOString() method returns a string in the ISO format
+
+### 6.7 Operations With Dates
+
+Timestamps are useful for calculating the difference between 2 dates
+
+```js
+const future = new Date(2037, 10, 19, 15, 23, 5); // Tue Nov 19 2037 16:23:05 GMT-0700 (Pacific Daylight Time)
+// we can easily get the timestamp of a date by using the + operator
+console.log(+future); // 2142245785000
+
+const calcDaysPassed = (date1, date2) =>
+  // we can get the date in milliseconds by using the getTime() method and then divide it by the number of milliseconds in a day
+  Math.abs(date2 - date1) / (1000 * 60 * 60 * 24);
+
+const formatMovementsDate = function (date) {
+  const calcDaysPassed = (date1, date2) =>
+    Math.abs(date1 - date2) / (1000 * 60 * 60 * 24);
+
+  const daysPassed = Math.round(calcDaysPassed(date, new Date()));
+
+  if (daysPassed === 0) return "Today";
+  if (daysPassed === 1) return "Yesterday";
+  if (daysPassed <= 7) return `${daysPassed} days ago`;
+  else {
+    // day/month/year
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+};
+```
+
+### 6.8 Internationalizing Dates and Numbers (Intl)
+
+We can simplyfy the formatting process by using the Intl object
+
+```js
+const now = new Date();
+labelDate.textContent = new Intl.DateTimeFormat("en-CA").format(now);
+// we can specify the options and pass it as the 2nd parameter
+const options = {
+  hour: "numeric",
+  minute: "numeric",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  weekday: "long",
+};
+```
+
+- We can also use the navigator object to get the locale of the user's browser
+
+```js
+const locale = navigator.language;
+
+labelDate.textContent = new Intl.DateTimeFormat("en-US", options).format(now);
+```
+
+- We can also format numbers with the Intl API: Intl.NumberFormat()
+
+```js
+const num = 3884764.23;
+const options = {
+  // for style, we can use unit, percent, currency
+  // when the style is percent, the unit is ignored
+  // when the style is currency, we need to specify the currency
+  style: "currency",
+  unit: "celsius",
+  currency: "EUR",
+  // useGrouping: false,
+};
+console.log("US: ", new Intl.NumberFormat("en-US", options).format(num)); // US:  $3,884,764.23
+console.log("Germany: ", new Intl.NumberFormat("de-DE", options).format(num)); // Germany:  3.884.764,23 €
+console.log("Syria: ", new Intl.NumberFormat("ar-SY", options).format(num));
+```
+
+### 6.9 Timers: setTimeout() and setInterval()
+
+- setTimeout() method is used to run a callback function after a certain amount of time
+
+```js
+// we don't call the callback function, we just pass it as a parameter and wait the setTimeout() method to call it
+setTimeout(() => console.log("Here is your pizza 🍕"), 2000);
+
+// asynchronus callback function: the callback function will be called after the time interval, but the rest of the code will be executed immediately
+console.log("Waiting...");
+
+// We can actually pass parameters to the callback function after the time interval
+const ingredients = ["olives", "spinach"];
+const pizzaTimer = setTimeout(
+  (ing1, ing2) => console.log(`Here is your pizza with ${ing1} and ${ing2}`),
+  3000,
+  ...ingredients
+);
+
+if (ingredients.includes("spinach")) clearTimeout(pizzaTimer);
+```
+
+- setInterval() method is used to run a callback function after a certain amount of time, and it will keep running the callback function after the specified time interval endlessly
+
+```js
+setInterval(function () {
+  const now = new Date();
+  console.log(now);
+}, 1000); // it will keep running the callback function after 1 second
+
+// if we want to call the first callback function immediately, we can call it before the setInterval() method
+const tick = () => {
+  const now = new Date();
+  console.log(now);
+};
+tick();
+setInterval(tick, 1000);
+
+// it's a good idea to set a timer as a global variable, so we can clear it before it runs again
+clearInterval(timer);
+timer = startLogOutTimer(); // this function returns a new timer, and we can assign it to the global variable
+```
+
+## 7. Advanced DOM and Events
