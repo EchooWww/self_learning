@@ -2130,3 +2130,520 @@ timer = startLogOutTimer(); // this function returns a new timer, and we can ass
 ```
 
 ## 7. Advanced DOM and Events
+
+### 7.1 How the DOM Really Works
+
+- DOM tree is composed of nodes, and we have 4 types of nodes: element nodes, text nodes, comment nodes, and document nodes
+
+1. element nodes: HTML tags
+
+- There are different types of elememnt depending on the tag name, different types have different attributes in the element object.
+
+- Inheritance: There is a special type of node called event target, which is the parent of all the element nodes, so we can use event delegation to handle events in any element nodes
+
+2. text nodes: the actual text
+3. comment nodes: comments in the HTML code
+4. document nodes: the entry point into the DOM
+
+### 7.2 Selecting, Creating, and Deleting Elements
+
+Selecting
+
+- querySelectorAll(): returns a NodeList, which isn't live
+- getElementByClassName() and getElementByTagName(): returns a HTMLCollection, which is live, meaning that it will be updated **automatically** when the DOM changes
+
+Creating and inserting
+
+- createElement(): create a new element, but it's only in the DOM, not in the HTML code
+
+- insertAdjacentHTML(): insert a HTML string into the DOM
+- append(): insert an element as the last child of another element
+- prepend(): insert an element as the first child of another element
+
+  💡 DOM element is unique, so we can use append() and prepend() to move an element from one place to another
+
+```js
+header.prepend(message);
+header.append(message);
+```
+
+- before(): insert an element before another element
+- after(): insert an element after another element
+- remove(): remove an element from the DOM
+
+### 7.3 Styles, Attributes and Classes
+
+🎀 **Styles**
+
+- We can add inline styles to an element by using the style property, and the value of the style property is a string, and we should use **camelCase** to write the CSS properties
+
+```js
+// Styles: inline styles
+message.style.backgroundColor = "#37383d";
+message.style.width = "120%";
+```
+
+- we can use getComputedStyle() method to get all the styles of an element
+
+```js
+console.log(message.style.height); // likely, it only loads inline styles
+console.log(getComputedStyle(message).color); // this will return all the styles we want
+```
+
+- and we can use Number.parseFloat() to convert the string to a number, which is very useful for changing the height of an element
+
+```js
+message.style.height =
+  Number.parseFloat(getComputedStyle(message).height, 10) + 30 + "px";
+```
+
+- We can also work with CSS properties(variables) with DOM manipulation
+  > root is the :root pseudo-class, which is the same as the html tag
+
+```js
+// when we use documentElement, we're selecting the root element, which is the html tag
+// setProperty() method takes 2 parameters: the name of the CSS property, and the value of the CSS property
+document.documentElement.style.setProperty("--color-primary", "orangered");
+```
+
+🎩 **Attributes**
+
+- Attributes means the attributes in the HTML code, such as id, class, src, etc. We can simply get attribute value by .attributeName. 🟡 Note this only works for standard attributes, not custom attributes
+
+```js
+// Attributes
+const logo = document.querySelector(".nav__logo");
+console.log(logo.alt); // Bankist logo
+console.log(logo.src); // http://
+console.log(logo.className); // nav__logo
+
+// Non-standard attributes
+console.log(logo.designer); // undefined
+```
+
+- getAttribute() method can get the value of a non-standard attribute, same for setAttribute() method
+
+```js
+console.log(logo.getAttribute("designer")); // Jonas
+logo.setAttribute("company", "Bankist");
+```
+
+💡 Another main difference from dot and getAttribute():
+the first one would return the absolute path of the image, but the second one would return the one in our html code, this also works for href attribute
+
+- data attributes: we can use data attributes to store some data in the HTML code, and we can access the data by using dataset property
+
+```js
+// in html file
+<img
+  src="img/logo.png"
+  alt="Bankist logo"
+  class="nav__logo"
+  data-version-number="3.0"
+/>;
+// also, we need to use camelCase to access the data
+console.log(logo.dataset.versionNumber); // 3.0
+```
+
+🎨 **Classes**
+
+- classList property is used to add, remove, and toggle classes
+
+```js
+logo.classList.add("c", "j");
+logo.classList.remove("c", "j");
+logo.classList.toggle("c");
+logo.classList.contains("c"); // not includes
+```
+
+- 🔴 don't use className property to add or remove classes, because it will overwrite all the classes
+
+### 7.4 Smooth Scrolling
+
+```js
+const btnScrollTo = document.querySelector(".btn--scroll-to");
+const section1 = document.querySelector("#section--1");
+btnScrollTo.addEventListener("click", function (e) {
+  const s1coords = section1.getBoundingClientRect();
+  console.log(e.target.getBoundingClientRect());
+  console.log("Current scroll (X/Y)", window.scrollX, window.scrollY);
+  console.log(
+    "height/width viewport",
+    document.documentElement.clientHeight,
+    document.documentElement.clientWidth
+  );
+
+  // current scroll position + current position of the element
+  window.scrollTo(
+    left: s1coords.left + window.scrollX,
+    top: s1coords.top + window.scrollY,
+    behavior: "smooth"
+  );
+
+  // 🌟 modern way 🌟
+  section1.scrollIntoView({ behavior: "smooth" });
+});
+```
+
+### 7.5 Types of Events and Event Handlers
+
+> 🤔 Events exist even there's no event handler.
+
+**Event Handlers**
+
+```js
+const h1 = document.querySelector("h1");
+const alertH1 = function (e) {
+  alert("addEventListener: Great! You are reading the heading :D");
+};
+h1.addEventListener("mouseenter", alertH1);
+```
+
+**On-event property**
+
+```js
+// we can also use the on-event property to add an event handler
+h1.onmouseenter = function (e) {
+  alert("addEventListener: Great! You are reading the heading :D");
+};
+```
+
+-1st Advantage of event handler: on-event property can only have one event handler, but addEventListener() can have multiple event handlers
+
+```js
+h1.addEventListener("mouseenter", alertH1);
+h1.addEventListener("mouseenter", function (e) {
+  alert("addEventListener: Great! You are reading the heading :D");
+});
+```
+
+- 2nd Advantage of event handler: removeEventListener() method is used to remove an event handler
+
+  ```js
+  // remove an event handler within the event handler, so it would only run once
+  h1.removeEventListener("mouseenter", alertH1);
+  // we can also remove with setTimeout()
+  setTimeout(() => h1.removeEventListener("mouseenter", alertH1), 3000);
+  ```
+
+  **html attribute**
+
+```html
+<!-- we can also add an event handler in the html code -->
+<h1 onclick="alert('HTML: Great! You are reading the heading :D')">
+  Bankist App
+</h1>
+```
+
+### 7.6 Event Propagation: Bubbling and Capturing
+
+**3 stages of event propagation**
+
+1. When an event happens on an element, the DOM generates an event object at the root, and **capturing phase** happens, i.e., the event travels all the way down to the target element
+2. and then the **target phase** happens, i.e., the event happens on the target element
+3. and then the **bubbling phase** happens, i.e., the event travels all the way up to the root element
+
+> 💡 Note that it travels from parent to child, without going through the siblings
+
+- **Event propagation in practice**
+
+  When we click the nav\_\_link element, because of the bubble-up effect, it acts as if the event happens in all the parent elements and triggers the event handlers
+
+```js
+const randomInt = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1) + min);
+
+const randomColor = () =>
+  `rgb(${randomInt(0, 255)},${randomInt(0, 255)},${randomInt(0, 255)})`;
+document.querySelector(".nav__link").addEventListener("click", function (e) {
+  // e.target is the element that the event happens on, so will be the same for 3 event handlers
+  // e.currentTarget is the element that the event handler is attached to
+  // this keyword is the same as e.currentTarget
+  this.style.backgroundColor = randomColor();
+  console.log("LINK", e.target, e.currentTarget);
+});
+document.querySelector(".nav__links").addEventListener("click", function (e) {
+  this.style.backgroundColor = randomColor();
+  console.log("CONTAINER", e.target, e.currentTarget);
+});
+document.querySelector(".nav").addEventListener("click", function (e) {
+  this.style.backgroundColor = randomColor();
+  console.log("NAV", e.target, e.currentTarget);
+});
+```
+
+- e.stopPropagation() method is used to stop the event propagation, so the event will not bubble up to the parent elements
+
+- the 3rd parameter of the addEventListener() method is used to specify the phase, and the default value is false, which means the event handler will be called during the bubbling phase, and if we set it to true, the event handler will be called during the capturing phase (from the root)
+
+### 7.7 Event Delegation: Implementing Page Navigation
+
+When we have lots of elements that we want to add event handlers to, we can use event delegation to add event handlers to the **parent element**, and then use the target element to determine which element triggered the event to improve the performance
+
+```js
+// 1. Add event listener to the common parent element
+// 2. Determine what element originated the event
+document.querySelector(".nav__links").addEventListener("click", function (e) {
+  e.preventDefault();
+  // Matching strategy
+  if (e.target.classList.contains("nav__link")) {
+    const id = e.target.getAttribute("href");
+    document.querySelector(id).scrollIntoView({ behavior: "smooth" });
+  }
+});
+```
+
+### 7.8 DOM Traversing
+
+- Get child elements: el.querySelectorAll(), el.children, el.childNodes, el.firstElementChild, el.lastElementChild
+
+```js
+const h1 = document.querySelector("h1");
+// returns all child elements of h1 with that className, no matter how deep
+console.log(h1.querySelectorAll(".highlight"));
+console.log(h1.childNodes); // only direct children, including text and comment
+console.log(h1.children); // html collection, live
+h1.firstElementChild.style.color = "white";
+h1.lastElementChild.style.color = "grey";
+```
+
+- Get parent elements: el.parentNode, el.parentElement, el.closest()
+
+```js
+// Going upwards: parents
+console.log(h1.parentNode);
+console.log(h1.parentElement);
+
+// Closest element as specified by the selector, can be parent element or itself
+h1.closest(".header").style.background = "var(--gradient-secondary)";
+
+h1.closest("h1").style.background = "var(--gradient-secondary)";
+```
+
+- Get sibling elements: el.previousElementSibling, el.nextElementSibling, el.previousSibling, el.nextSibling
+
+```js
+// Going sideways: siblings
+// Close sibling elements
+console.log(h1.previousElementSibling);
+console.log(h1.nextElementSibling);
+// Close siblings
+console.log(h1.previousSibling);
+console.log(h1.nextSibling);
+// All siblings including itself
+console.log(h1.parentElement.children);
+[...h1.parentElement.children].forEach((el) => {
+  if (el !== h1) el.style.transform = "scale(0.5)";
+});
+```
+
+### 7.9 Building a Tabbed Component
+
+> The idea to build similar elements: add/remove classes to the elements
+
+Step 1: Add event handler to the parent element
+Step 2: Determine what element originated the event with closest() method
+Step 3: Remove active classes from all the elements
+Step 4: Add active class to the target element
+
+```js
+const tabs = document.querySelectorAll(".operations__tab");
+const tabsContainer = document.querySelector(".operations__tab-container");
+const tabsContent = document.querySelectorAll(".operations__content");
+
+tabsContainer.addEventListener("click", function (e) {
+  const clicked = e.target.closest(".operations__tab");
+  // Guard clause
+  if (!clicked) return;
+
+  // Active tab
+  tabs.forEach((t) => {
+    t.classList.remove("operations__tab--active");
+  });
+  clicked.classList.add("operations__tab--active");
+
+  // Active content area
+  tabsContent.forEach((c) => {
+    c.classList.remove("operations__content--active");
+  });
+  // select the corresponding content area by template literal
+  document
+    .querySelector(`.operations__content--${clicked.dataset.tab}`)
+    .classList.add("operations__content--active");
+});
+```
+
+### 7.10 Passing Arguments to Event Handlers
+
+```js
+// Menu fade animation
+// The handler function can just have one REAL parameter: the event
+const changeOpacity = function (e, opacity) {
+  // mouseenter doesn't bubble
+  if (e.target.classList.contains("nav__link")) {
+    const link = e.target;
+    const siblings = link.closest(".nav").querySelectorAll(".nav__link");
+    const logo = link.closest(".nav").querySelector("img");
+    siblings.forEach((el) => {
+      if (el !== link) el.style.opacity = this;
+    });
+    logo.style.opacity = this; // this keyword is pointing to the argument of .bind()
+  }
+};
+
+// Passing other arguments to an handler with .bind()
+nav.addEventListener("mouseover", changeOpacity.bind(0.5));
+
+nav.addEventListener("mouseout", changeOpacity.bind(1));
+
+// or we can use an arrow function
+nav.addEventListener("mouseover", (e) => changeOpacity(e, 0.5));
+nav.addEventListener("mouseout", (e) => changeOpacity(e, 1));
+```
+
+### 7.11 Implementing a Sticky Navigation: The Scroll Event
+
+```js
+// Sticky navigation
+
+// scroll event: bad performance
+const initialCoords = section1.getBoundingClientRect();
+console.log(initialCoords);
+window.addEventListener("scroll", function () {
+  console.log(window.scrollY);
+  if (window.scrollY > initialCoords.top) nav.classList.add("sticky");
+  else nav.classList.remove("sticky");
+});
+```
+
+- We can use the Intersection Observer API to implement the sticky navigation. It's a very useful API which can observe the intersection of an element and the viewport, and it's very useful for lazy loading images, infinite scrolling, and sticky navigation
+
+```js
+// Sticky navigation: Intersection Observer API
+
+// get the height of the nav element with getBoundingClientRect() method
+const navHeight = nav.getBoundingClientRect().height;
+
+// create a callback function that takes an array of entries as the parameter
+const stickyNav = function (entries) {
+  // destructure the first element of the array
+  const [entry] = entries;
+  console.log(entry);
+  // use the isIntersecting property to check if the element is intersecting the viewport
+  if (!entry.isIntersecting) nav.classList.add("sticky");
+  else nav.classList.remove("sticky");
+};
+
+const headerObserver = new IntersectionObserver(stickyNav, {
+  // the root is the viewport
+  root: null,
+  // the threshold is the percentage of intersection at which the observer callback will be called
+  threshold: 0,
+  // we can also specify the root margin, which is the margin around the root
+  rootMargin: `-${navHeight}px`,
+});
+// observe the header element with the observer
+headerObserver.observe(header);
+```
+
+- Another use case of the Intersection Observer API is to reveal elements on scroll
+
+```js
+// reveal sections
+const allSections = document.querySelectorAll(".section");
+const revealSection = function (entries, observer) {
+  const [entry] = entries;
+  console.log(entry);
+
+  if (!entry.isIntersecting) return;
+  entry.target.classList.remove("section--hidden");
+  observer.unobserve(entry.target);
+};
+
+const sectionObserver = new IntersectionObserver(revealSection, {
+  root: null,
+  threshold: 0.15,
+});
+allSections.forEach((section) => {
+  sectionObserver.observe(section);
+  section.classList.add("section--hidden");
+});
+```
+
+- We can improve performance by lazy loading images: use a low resolution image(and blur it) as the src attribute, and use a data-src attribute to store the url of the high resolution image, and then use the Intersection Observer API to load the high resolution image when the low resolution image is intersecting the viewport
+
+```js
+// Lazy loading images
+const imageTargets = document.querySelectorAll("img[data-src]");
+
+const loadImg = function (entries, observer) {
+  const [entry] = entries;
+  console.log(entry);
+  if (!entry.isIntersecting) return;
+
+  // Replace src with data-src
+  entry.target.src = entry.target.dataset.src;
+  entry.target.addEventListener("load", function () {
+    entry.target.classList.remove("lazy-img");
+  });
+
+  observer.unobserve(entry.target);
+};
+const imageObserver = new IntersectionObserver(loadImg, {
+  root: null,
+  threshold: 0,
+  rootMargin: "500px",
+});
+
+imageTargets.forEach(function (image) {
+  imageObserver.observe(image);
+});
+```
+
+### 7.12 Life cycle of DOM Events
+
+- DOMContentLoaded event: fired as soon as the HTML is completely parsed, without waiting for the stylesheets, images, and subframes to load
+
+```js
+document.addEventListener("DOMContentLoaded", function (e) {
+  console.log("HTML parsed and DOM tree built!", e);
+});
+
+// jQuery version
+$(document).ready(function () {
+  console.log("HTML parsed and DOM tree built!");
+});
+
+// load
+window.addEventListener("load", function (e) {
+  console.log("Page fully loaded", e);
+});
+// before unload: when we try to close the tab, it will be fired, to make sure that the user doesn't lose any data
+window.addEventListener("beforeunload", function (e) {
+  e.preventDefault();
+  console.log(e);
+  e.returnValue = "";
+});
+```
+
+### 7.13 Efficient Script Loading: defer and async
+
+- When we use regular script tag, the process of browser is: HTML parsing -> script fetching and executing -> HTML parsing -> script execution. To make the browser parse all html first, we put the script tag at the end of the body tag.
+- A better way is to use async: we can fetch the script while parsing html, but still the parsing is blocked when executing the script, and
+- The best way is to use defer: we can fetch the script while parsing html, and the parsing is not blocked when executing the script. Moreover, defer can garantee the order of the scripts, but async can't.
+  > Async and defer only work for head scripts
+
+## 8. Object Oriented Programming with JavaScript
+
+4 fundamental principles of OOP: abstraction, encapsulation, inheritance, and polymorphism
+
+- Abstraction: ignore or hide details that don't matter, so we can focus on the essentials
+- Encapsulation: keep some properties and methods private inside the class, so they are not accessible from outside the class. Some methods can be exposed as a public interface (API)
+- Inheritance: make all properties and methods of a certain class available to a child class, forming a hierarchical relationship between classes
+- Polymorphism: a child class can overwrite a method it inherited from a parent class
+
+### 8.1 OOP in JavaScript
+
+> 💡 In Javascript we don't have 'classes', we have **prototypes**, and we can use prototypes to implement OOP
+
+- Prototypal inheritance: the prototype contains methods (behavior) that are accessible to all objects linked to that prototype (unlike instances inherit from classes in classical OOP). AKA **delegation**
