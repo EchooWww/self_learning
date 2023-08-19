@@ -10,7 +10,8 @@
 ### 0.2 `this` keyword
 
 - refer to an object when the function is called, when called from the global scope, it refers to the window object of the browser
-- If the function is attached to an objet, and called by that object, `this` would be referring the object
+- If the function is attached to an object, and called by that object, `this` would be referring the object
+- In an event handler, `this` refers to the DOM element that the handler is attached to>
 
 ### 0.3 Pass-by-value and pass-by-reference
 
@@ -2647,3 +2648,46 @@ window.addEventListener("beforeunload", function (e) {
 > 💡 In Javascript we don't have 'classes', we have **prototypes**, and we can use prototypes to implement OOP
 
 - Prototypal inheritance: the prototype contains methods (behavior) that are accessible to all objects linked to that prototype (unlike instances inherit from classes in classical OOP). AKA **delegation**
+
+  Example: Array.prototype is the prototype of all the arrays, and it contains all the methods that are accessible to all the arrays. We can say our array inherits the methods from Array.prototype, or our array delegates the methods to Array.prototype
+
+- 3 ways to implement prototypal inheritance
+
+  1. Constructor functions: how built-in objects like Arrays, Maps, or Sets are actually implemented, how OOP done in JS before ES6
+  2. ES6 classes: a modern alternative to constructor functions, "syntactic sugar", behind the scenes, ES6 classes work exactly like constructor functions, with prototypes and prototypal inheritance
+  3. Object.create(): the easiest and most straightforward way of linking an object to a prototype object, but it's not used very often
+
+### 8.2 Constructor Functions and the new Operator
+
+- Constructor function is a convention, instead of attribute of the language itself
+
+```js
+// 💡 constructor functions starts with capital letter
+// 🟡 Only function expressions/declarations, bc arrow functions don't have 'this' keyword
+const Person = function (firstName, birthYear) {
+  // Instance properties
+  this.firstName = firstName;
+  this.birthYear = birthYear;
+
+  // Never do this
+  // this.calcAge = function () {
+  //   console.log(2037 - this.birthYear);
+  // };
+};
+const jonas = new Person("Jonas,", 1991);
+console.log(jonas);
+```
+
+Behind the sence: 4 steps
+
+1. New empty object {} is created
+2. Function is called, this = {}
+3. {} linked to the prototype
+4. function automatically return{}
+
+```js
+// Instances of Person prototype
+const matilda = new Person("Matilda", 2017);
+console.log(matilda);
+console.log(matilda instanceof Person); // true
+```
