@@ -1794,7 +1794,7 @@ There are many different scenarios:
 - to get a new string:` join()`
 - to just loop over an array: `forEach()` -- does not create a new array or any value
 
-# 5.15 Array Methods Practice
+### 5.15 Array Methods Practice
 
 We can use `reduce()`method not only for numbers, but also initialize an object and mutate it in the callback function
 
@@ -2647,7 +2647,7 @@ window.addEventListener("beforeunload", function (e) {
 
 > 💡 In Javascript we don't have 'classes', we have **prototypes**, and we can use prototypes to implement OOP
 
-- Prototypal inheritance: the prototype contains methods (behavior) that are accessible to all objects linked to that prototype (unlike instances inherit from classes in classical OOP). AKA **delegation**
+- Prototypal inheritance: the prototype contains methods (behavior) that are accessible to all objects linked to that prototype (unlike instances copies from classes in classical OOP). AKA **delegation**
 
   Example: Array.prototype is the prototype of all the arrays, and it contains all the methods that are accessible to all the arrays. We can say our array inherits the methods from Array.prototype, or our array delegates the methods to Array.prototype
 
@@ -2678,12 +2678,12 @@ const jonas = new Person("Jonas,", 1991);
 console.log(jonas);
 ```
 
-Behind the sence: 4 steps
+🆕 Create instances with function constructor and ES6 class: (but not object.create())
 
 1. New empty object {} is created
-2. Function is called, this = {}
-3. {} linked to the prototype
-4. function automatically return{}
+2. Function is called, this keyword is set to the new empty object
+3. {} empty object linked to the prototype, i.e. the **proto** property
+4. function automatically return the new object
 
 ```js
 // Instances of Person prototype
@@ -2691,3 +2691,157 @@ const matilda = new Person("Matilda", 2017);
 console.log(matilda);
 console.log(matilda instanceof Person); // true
 ```
+
+### 8.3 Prototypes
+
+- Each and every function in JS automatically has a property called **prototype**, that includes the constructor. All the objects created through the constructor can get access to all the methods and properties that are defined on the constructor's prototype property
+- Only **one copy** of the methods in the prototype, and all the instances can get access to the methods
+
+```js
+Person.prototype.calcAge = function () {
+  console.log(2037 - this.birthYear);
+};
+jonas.calcAge(); // 46, because jonas is an instance of Person, and it can get access to the calcAge() method
+jonas.__proto__ === Person.prototype; //true, __proto__ is the prototype property of the constructor function. Person.prototype is actually not the prototype of Person, but the prototype of all the instances of Person
+console.log(Person.prototype.isPrototypeOf(jonas)); // true
+console.log(Person.prototype.isPrototypeOf(Person)); // false
+
+// properties in prototype is not the instance's own property
+console.log(jonas.hasOwnProperty("firstName")); // true
+console.log(jonas.hasOwnProperty("calcAge")); // false, it's in the prototype
+```
+
+### 8.4 Prototypal Inheritance and The Prototype Chain
+
+- If a method is not defined in the object, JS will look for the method in the prototype, making JS performant.
+
+```js
+const jonas = new Person("Jonas,", 1991);
+jonas.calcAge(); // 46
+```
+
+- ⛓️ Prototype chain: ** All objects** in JS has a prototype, and Person.prototype is an object, so it has a prototype, too! which is Object.prototype, and Object.prototype has a prototype, which is null, in other words, Object.prototype is the end of the prototype chain. It works like the scope chain.
+
+```js
+// for example, hasOwnProperty() method is defined in Object.prototype, and we can use it in all the objects
+console.log(jonas.hasOwnProperty("firstName")); // true
+console.log(jonas.__proto__); // Person.prototype, does not include Object methods
+console.log(jonas.__proto__.__proto__); // Object.prototype
+console.log(jonas.__proto__.__proto__.__proto__); // null
+console.dir(Person.prototype.constructor); // Person(firstName, birthYear)
+console.log(Person.prototype.constructor); // this will return the code
+```
+
+- \***\*proto\*\*** is deprecated, we should use Object.getPrototypeOf() method instead.
+
+### 8.5 Prototypal Inheritance on Built-In Objects
+
+- prototype chain for arrays: Array.prototype -> Object.prototype -> null. All the array functions are defined in Array.prototype, we can use them in all the arrays
+
+```js
+const arr = [3, 6, 4, 5, 6, 9, 3]; // new Array === []
+console.log(arr.__proto__); // Array.prototype
+console.log(arr.__proto__.__proto__); // Object.prototype
+console.log(arr.__proto__.__proto__.__proto__); // null
+```
+
+- By using the prototype chain, we can add new methods to the built-in objects. But it's not recommended to do so for the built-in objects.
+
+```js
+// we can add a new method to the Array.prototype
+Array.prototype.unique = function () {
+  return [...new Set(this)];
+};
+console.log(arr.unique()); // [3, 6, 4, 5, 9]
+```
+
+- Prototype chain of h1 element: HTMLHeadingElement.prototype -> HTMLElement.prototype -> Element.prototype -> Node.prototype -> EventTarget.prototype -> Object.prototype -> null
+
+### 8.6 ES6 Classes
+
+- Classes in JS don't work like classes in other programming languages, but in ES6, we can use the class syntax to implement OOP in JS, behind the scenes, it works exactly like constructor functions and prototypes
+- Classes are functions behind the scene, so just like functions, we can use class expressions and class declarations
+
+```js
+// Class expression
+// const PersonCl = class {}
+// Class declaration
+class PersonCl {}
+```
+
+1. Classes are not hoisted, so we can't use them before they are declared
+2. Classes are first-class citizens, we can pass them into functions and return them from functions
+3. Classes are executed in strict mode
+
+- ES6 classes are good in formatting the code though.
+
+### 8.7 Setters and Getters
+
+Getter and setters in Javascript are properties, instead of methods. So instead of call them, we can get and set them like properties.
+
+- Getter and setter in regular object
+
+```js
+const account = {
+  owner: "Jonas",
+  movements: [200, 530, 120, 300],
+
+  get latest() {
+    return this.movements.slice(-1)[0]; // or this.movements.slice(-1).pop();
+  },
+
+  set latest(mov) {
+    this.movements.push(mov);
+  },
+};
+
+console.log(account.latest); // 300
+account.latest = 50; // equals to pass 50 to the setter
+console.log(account.movements); // [200, 530, 120, 300, 50]
+```
+
+- Getter and setter in class
+
+````js
+class Personcl {
+  constructor(firstName, birthYear) {
+    this.firstName = firstName;
+    this.birthYear = birthYear;
+  }
+
+  // Methods will be added to teh .prototype property
+  calcAge() {
+    console.log(2037 - this.birthYear);
+  }
+
+  greet() {
+    console.log(`Hey ${this.firstName}`);
+  }
+
+  get age() {
+    return 2037 - this.birthYear;
+  }
+}
+
+const jessica = new Personcl("jessica", 1996);
+console.log(jessica);
+jessica.calcAge(); // 41
+console.log(jessica.age); // 41, we use that without parentheses, because it's a getter
+
+// It's a bit tricky to user getter and setter in classes. For data validation, we need to first set the value to a new property in our setter, and then use that property in our getter
+```js
+class Personcl {
+  constructor(fullName, birthYear) {
+    this.fullName = fullName;
+    this.birthYear = birthYear;
+  }
+
+  set fullName(name) {
+    if (name.includes(' ')) this._fullName = name;
+    else alert(`${name} is not a full Name`);
+  }
+  get fullName() {
+    return this._fullName;
+  }
+}
+````
