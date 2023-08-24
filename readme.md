@@ -2757,7 +2757,7 @@ console.log(arr.unique()); // [3, 6, 4, 5, 9]
 
 - Prototype chain of h1 element: HTMLHeadingElement.prototype -> HTMLElement.prototype -> Element.prototype -> Node.prototype -> EventTarget.prototype -> Object.prototype -> null
 
-### 8.6 ES6 Classes
+### ‼️ 8.6 ES6 Classes
 
 - Classes in JS don't work like classes in other programming languages, but in ES6, we can use the class syntax to implement OOP in JS, behind the scenes, it works exactly like constructor functions and prototypes
 - Classes are functions behind the scene, so just like functions, we can use class expressions and class declarations
@@ -2845,3 +2845,229 @@ class Personcl {
   }
 }
 ````
+
+### 8.8 Static Methods
+
+Static methods are attached to the very **constructor** function, and not to the prototype. So we can't use static methods on the instances, but only on the constructor function itself.
+
+```js
+// Array.from() is a static method, all the arrays don't inherit this method
+Array.from(document.querySelectorAll("h1")); // correct usage
+document.querySelectorAll("h1").from(); // wrong usage
+// The same for Number.parseFloat()
+Number.parseFloat("2.5rem"); // correct usage
+
+// To define a static method, we simply use Constructor.functionName
+Person.hey = function () {
+  // if non-static, should be declared as Person.prototype.hey = function () {}
+  console.log("Hey there 👋");
+  console.log(this);
+};
+
+// Or we can define a static method in the class by simply add a static keyword
+class Person {
+  static hey() {
+    console.log("Hey there 👋");
+    console.log(this); // static method has its own this keyword, which is the constructor function
+  }
+}
+```
+
+### 8.9 Object.create()
+
+To create new object this way, we first need to create a prototype object with object literal, and then pass it to the Object.create() method, and then we can create new objects based on that prototype object. This is not used very often.
+
+```js
+const PersonProto = {
+  calcAge() {
+    console.log(2037 - this.birthYear);
+  },
+};
+
+const steven = Object.create(PersonProto);
+steven.name = "Steven";
+steven.birthYear = 2002;
+steven.calcAge(); // 35
+```
+
+> 💡 _What's going on here?_
+> Object.create() method creates a new object, and sets the prototype of that object to whatever we pass into the method. So the prototype of steven is PersonProto, and the prototype of PersonProto is Object.prototype
+
+### 8.10 Inheritance Between "Classes": Constructor Functions
+
+- "Real inheritance" in JS: apart from prototypal inheritance, child class can inherit the methods from parent class, and we can also add new methods to the child class.
+
+```js
+const Person = function (firstName, birthYear) {
+  this.firstName = firstName;
+  this.birthYear = birthYear;
+};
+
+Person.prototype.calcAge = function () {
+  console.log(2037 - this.birthYear);
+};
+
+const Student = function (firstName, birthYear, course) {
+  Person.call(this, firstName, birthYear); // we need to bind the this keyword to the Student object by using call() method
+  this.course = course;
+};
+const mike = new Student("Mike", 2020, "Computer Science");
+```
+
+- We wanna manually create a prototype chain, i.e., to let Student.prototype's **proto** property pointing to Person.prototype. We need to use Object.create() method to do so.
+
+```js
+Student.prototype = Object.create(Person.prototype); // Student.prototype.__proto__ = Person.prototype
+// A = Object.create(B), A inherits from B. So we can say Student.prototype inherits from Person.prototype
+
+// the wrong way
+// Student.prototype = Person.prototype; // in this way, student and person would be at the same level
+```
+
+- When we call mike.calcAge(), the JS engine will first look for the method in mike, and then in Student.prototype, and then in Person.prototype, all the way up. That's why polymorphism works: when we overwrite a method in the child class, the method in teh child class will be used.
+
+### 8.11 Inheritance Between "Classes": ES6 Classes
+
+- Behind the scenes, ES6 classes work exactly like constructor functions and prototypes, so we can use the same way to implement inheritance between classes
+
+```js
+class Person {
+  constructor(firstName, birthYear) {
+    this.firstName = firstName;
+    this.birthYear = birthYear;
+  }
+  calcAge() {
+    console.log(2037 - this.birthYear);
+  }
+}
+
+// to interit, we need the extends keyword and super() method
+
+// if we don't have any new properties in the child class, we don't need to create a new constructor function
+class Student extends Person {
+  constructor(firstName, birthYear, course) {
+    // this need to happen first, because we will be able to use the this keyword after calling super()
+    super(firstName, birthYear); // super() method is used to call the parent constructor function, and we need to pass in the parameters
+    this.course = course;
+  }
+  introduce() {
+    console.log(`My name is ${this.firstName} and I study ${this.course}`);
+  }
+  // we can also overwrite the parent method
+  calcAge() {
+    console.log(
+      `I'm ${
+        2037 - this.birthYear
+      } years old, but as a student, I feel more like ${
+        2037 - this.birthYear + 10
+      }`
+    );
+  }
+}
+
+const martha = new Student("Martha", 2012, "Computer Science");
+martha.introduce(); // My name is Martha and I study Computer Science
+martha.calcAge(); // 25
+```
+
+### 8.12 Inheritance Between "Classes": Object.create()
+
+1. Create a prototype object with object literal
+2. Create a new prototype object with Object.create()
+3. Create new objects based on the new prototype, which is the child of our original prototype
+
+```js
+const PersonProto = {
+  calcAge() {
+    console.log(2037 - this.birthYear);
+  },
+  init(firstName, birthYear) {
+    this.firstName = firstName;
+    this.birthYear = birthYear;
+  },
+};
+
+const StudentProto = Object.create(PersonProto);
+const jay = Object.create(StudentProto);
+
+StudentProto.init = function (firstName, birthYear, course) {
+  PersonProto.init.call(this, firstName, birthYear);
+  this.course = course;
+};
+StudentProto.introduce = function () {
+  console.log(`My name is ${this.firstName} and I study ${this.course}`);
+};
+
+jay.init("Jay", 2010, "Computer Science");
+jay.introduce(); // My name is Jay and I study Computer Science
+jay.calcAge(); // 27, inheritance works
+```
+
+### 8.13 Encapsulation: Protected Properties and Methods
+
+Reasons to use encapsulation:
+
+1. To protect the data, i.e., to prevent code from outside to accidentally manipulate the data
+2. We can be more confident when we change the internal implementation of the class, because we know that the public API will not be affected
+
+We can protect the properties and methods by using \_ in front of the name, but it's not a real protection, it's just a convention.
+
+```js
+class Account {
+  constructor(owner, currency, pin) {
+    this.owner = owner;
+    this.currency = currency;
+    this._pin = pin; // protected property
+    this._movements = [];
+    this.locale = navigator.language;
+    console.log(`Thanks for opening an account, ${owner}`);
+  }
+}
+```
+
+💡 Truly private class fields are a stage 3 proposal for a new version of JS, and they are not supported by all the browsers yet.
+
+```js
+class Account {
+  // 1. Public fields (instances)
+  locale = navigator.language;
+  // 2. Private fields (instances, but not the prototype)
+  #movements = [];
+  #pin;
+
+  // 3. Public fields (prototype)
+
+  // public interface
+  constructor(owner, currency, pin) {
+    this.owner = owner;
+    this.currency = currency;
+    this.#pin = pin;
+    console.log(`Thanks for opening an account, ${owner}`);
+  }
+
+  // 4. Private methods: not supported by all the browsers yet
+  #approveLoan(value) {
+    return true;
+  }
+}
+
+const acc1 = new Account("Jonas", "EUR", 1111);
+console.log(acc1);
+console.log(acc1.#movements); // Uncaught SyntaxError: Private field '#movements' must be declared in an enclosing class
+```
+
+### 8.14 Chaining Methods
+
+```js
+acc1.deposit(300).deposit(500).withdraw(35).requestLoan(25000).withdraw(4000); // the methods return the current object, so we can chain the methods
+```
+
+### 8.15 ES6 Classes Summary
+
+1. We define a class by the class keyword
+2. We define properties in the constructor method
+3. Public and private fields are defined in the class body, but not in the constructor method. Static fields are defined in the class body, too. Fields are common to all the instances, and they are not on the prototype, but we can redefine them in the instances
+4. Constructor method is called by the new operator
+5. When we call a method on an object, the method is first looked up in the object itself, and then in the prototype of the object, and then in the prototype of the prototype, all the way up the prototype chain
+6. Getter and setter: we can use them like properties, but they are actually methods with get and set keywords， if we have a setter for a variable already in the constructor, we need to use a different variable name with \_ in front of it
+7. static method: only available on the constructor function, not on the instances, and not in **proto**
