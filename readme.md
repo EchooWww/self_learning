@@ -3071,3 +3071,227 @@ acc1.deposit(300).deposit(500).withdraw(35).requestLoan(25000).withdraw(4000); /
 5. When we call a method on an object, the method is first looked up in the object itself, and then in the prototype of the object, and then in the prototype of the prototype, all the way up the prototype chain
 6. Getter and setter: we can use them like properties, but they are actually methods with get and set keywords， if we have a setter for a variable already in the constructor, we need to use a different variable name with \_ in front of it
 7. static method: only available on the constructor function, not on the instances, and not in **proto**
+
+## 9. Asynchronous JavaScript: Promises, Async/Await and AJAX
+
+Sync vs Async
+Sync: code is executed line by line, and each line of code waits for the previous line to finish
+Async: code is executed without blocking or waiting for the previous line to finish
+
+- setTimeout() is an async function, it will be executed after 3 seconds, and the code after it will be executed first. ❕callback function is not necessarily async, it depends on the function itself
+
+```js
+const p = document.querySelector("p");
+setTimeout(() => {
+  console.log("1 second passed");
+  p.textContent = "1 second passed";
+}, 1000);
+p.style.color = "red"; // this is not blocked by the timer, because timer is async
+```
+
+- event listener for load: the callback function will be executed after the page is loaded, and the code after it will be executed first (not all event handler are async)
+
+```js
+window.addEventListener("load", function () {
+  console.log("Page loaded");
+});
+```
+
+### 9.1 AJAX: Asynchronous JavaScript and XML
+
+- With AJAX, we can send HTTP requests to the server from JavaScript, and we can receive data from the server, and then use the data to dynamically change the page without reloading the page. It works async.
+- We're not actually using XML, but JSON, which is a subset of JavaScript, and it's a very popular data format for sending data between a client and a server
+
+```js
+// https://countries-api-836d.onrender.com/countries/
+const getCountryData = function (country) {
+  const btn = document.querySelector(".btn-country");
+  const countriesContainer = document.querySelector(".countries");
+
+  ///////////////////////////////////////
+  // Old way of doing AJAX
+  const request = new XMLHttpRequest();
+  request.open("GET", `https://restcountries.com/v2/name/${country}`);
+  request.send();
+
+  request.addEventListener("load", function () {
+    const [data] = JSON.parse(this.responseText); // json is a string, so we need to parse it with JSON.parse(). The result is an array of objects, so we use destructuring to get the first element
+    console.log(data); // the object
+
+    const html = `<article class="country">
+  <img class="country__img" src="${data.flag}" />
+  <div class="country__data">
+    <h3 class="country__name">${data.name}</h3>
+    <h4 class="country__region">${data.region}</h4>
+    <p class="country__row"><span>👫</span>${(
+      +data.population / 1_000_000
+    ).toFixed(1)} million people </p>
+    <p class="country__row"><span>🗣️</span>${data.languages[0].name}</p>
+    <p class="country__row"><span>💰</span>${data.currencies[0].name}</p>
+  </div>
+</article>`;
+    countriesContainer.insertAdjacentHTML("beforeend", html);
+    countriesContainer.style.opacity = 1;
+  });
+};
+// The order of the countries is not guaranteed, because the requests are asynchronous, whichever request finishes first will trigger the event listener first.
+getCountryData("portugal");
+getCountryData("canada");
+getCountryData("usa");
+```
+
+### 9.2 How the Web Works Behind the Scene: Request and Response
+
+Client -> Request -> Server
+Client <- Response <- Server
+
+1. Browser makes a request to a DNS, which would convert the domain name to an IP address (with IP address and port number, the browser can find the server)
+2. TCP/IP(the internet fundamental protocols) connection is established between the client and the server
+3. HTTP request is sent to the server
+   ```js
+   // the request. We can not only send GET request, but also POST, PUT, DELETE, etc.
+   GET /rest/v2/name/portugal HTTP/1.1
+   // the request header
+    Host: restcountries.com
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) Gecko/20100101 Firefox/89.0
+    Accept-Language: en-US,en;q=0.5
+    <BODY> // only when we send POST request
+   ```
+   HTTPS is a secure version of HTTP, and it uses SSL/TLS certificates to encrypt the data
+4. HTTP response is sent from the web server to the client
+
+   ```js
+   // the response
+   HTTP/1.1 200 OK
+   // the response header
+   Date: Tue, 15 Jun 2021 03:30:00 GMT
+   Content-Type: application/json; charset=utf-8
+   Content-Length: 1234
+   <BODY> // the response body
+
+   ```
+
+5. Browser renders the HTML, CSS, and JavaScript. The request process is repeated for every resource on the page
+
+### 9.3 Make AJAX calls
+
+```js
+const getCountryData = function (country) {
+  const btn = document.querySelector(".btn-country");
+  const countriesContainer = document.querySelector(".countries");
+
+  ///////////////////////////////////////
+  // Old way of doing AJAX
+  const request = new XMLHttpRequest();
+  request.open("GET", `https://restcountries.com/v2/name/${country}`);
+  request.send();
+
+  // Event handlers for AJAX calls: when the state of the request changes, the event handler will be called
+  request.addEventListener("load", function () {
+    const [data] = JSON.parse(this.responseText); // json is a string, so we need to parse it with JSON.parse(). The result is an array of objects, so we use destructuring to get the first element
+    console.log(data); // the object
+
+    const html = `<article class="country">
+  <img class="country__img" src="${data.flag}" />
+  <div class="country__data">
+    <h3 class="country__name">${data.name}</h3>
+    <h4 class="country__region">${data.region}</h4>
+    <p class="country__row"><span>👫</span>${(
+      +data.population / 1_000_000
+    ).toFixed(1)} million people </p>
+    <p class="country__row"><span>🗣️</span>${data.languages[0].name}</p>
+    <p class="country__row"><span>💰</span>${data.currencies[0].name}</p>
+  </div>
+</article>`;
+    countriesContainer.insertAdjacentHTML("beforeend", html);
+    countriesContainer.style.opacity = 1;
+  });
+};
+// The order of the countries is not guaranteed, because the requests are asynchronous, whichever request finishes first will trigger the event listener first.
+getCountryData("portugal");
+getCountryData("canada");
+getCountryData("usa");
+```
+
+### 9.4 Callback Hell
+
+- To specify the sequence of async functions execution, we can use nested callbacks, i.e., have a second callback inside the first callback, so the second callback would only be executed after the first request is finished.
+- But if there are more requests, the code would be very messy, creating a "callback hell". So we can use promises to solve this problem.
+
+### 9.5 Promises and the Fetch API
+
+Since ES6, we can use promises to solve the callback hell problem. A promise is an object that is used as a placeholder for the future result of an async operation. A promise is a container for an asynchronously delivered value.
+
+```js
+// The modern way of making an AJAX call: with the fetch API
+const request = fetch("https://restcountries.com/v2/name/portugal");
+console.log(request); // returns a promise stored in the request variable
+```
+
+With promises, we can chain, instead of nest the operations.
+
+Promise lifecycle:
+pending -> settled/fulfilled or rejected
+We are able to consume the promise only after it's settled.
+
+- Create promise -> consume promise
+  Most of the time, we don't create promises ourselves, but we consume promises created by the browser APIs, like fetch(). We also need to create promises sometimes
+
+### 9.6 Consuming Promises && Chaining Promises
+
+```js
+const getCountryData = function (country) {
+  fetch(`https://restcountries.com/v2/name/${country}`)
+    .then((response) => response.json()) // available in the fetch API for all response objects, also an async function
+    .then((data) => renderCountry(data[0])); // resolved value of json()
+};
+
+getCountryData("portugal");
+```
+
+- Handle the neighboring countries
+
+```js
+const getCountryData = function (country) {
+  fetch(`https://restcountries.com/v2/name/${country}`)
+    .then((response) => response.json()) // available in the fetch API for all response objects, also an async function
+    .then((data) => {
+      renderCountry(data[0]);
+      const neighbour = data[0].borders[0];
+      if (!neighbour) return;
+      // Country 2
+      fetch(`https://restcountries.com/v2/alpha/${neighbour}`)
+        // What we got returned from the last promise will be the input for the next promise
+        .then((response) => response.json())
+        .then((data) => renderCountry(data, "neighbour"));
+    }); // resolved value of json()
+};
+
+getCountryData("germany");
+```
+
+- Don't nest promises: always return them and chain them outside. That's the point of using promises rather than callbacks.
+
+### 9.7 Handling Rejected Promises
+
+There are 2 ways to handle rejected promises:
+
+1. use the second callback function in then() method
+2. use catch() method at the end of the promise chain, all the promises in the chain will be handled by the catch() method
+
+```js
+promise.catch((err) => {
+  // catch also returns a paomise
+  console.error(`${err}💥💥`);
+  renderError(`Something went wrong ${err.message}`);
+});
+```
+
+- The finally() method will be called no matter the promise is fulfilled or rejected
+
+```js
+// this can be chained after catch(), because catch() also returns a promise
+promise.finally(() => {
+  countriesContainer.style.opacity = 1;
+});
+```
