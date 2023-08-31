@@ -3254,17 +3254,22 @@ getCountryData("portugal");
 ```js
 const getCountryData = function (country) {
   fetch(`https://restcountries.com/v2/name/${country}`)
-    .then((response) => response.json()) // available in the fetch API for all response objects, also an async function
+    .then((response) => {
+      if (!response.ok)
+        throw new Error(`Country not found (${response.status})`); // throw an error to reject the promise, jump to catch()
+      return response.json();
+    }) // json() is also available in the fetch API for all response objects, also an async function
     .then((data) => {
       renderCountry(data[0]);
-      const neighbour = data[0].borders[0];
+      const neighbour = "alala";
       if (!neighbour) return;
       // Country 2
       fetch(`https://restcountries.com/v2/alpha/${neighbour}`)
         // What we got returned from the last promise will be the input for the next promise
         .then((response) => response.json())
-        .then((data) => renderCountry(data, "neighbour"));
-    }); // resolved value of json()
+        .then((data) => renderCountry(data, "neighbour"))
+        .catch(error)=>console.error(`${error}💥💥`);
+    }) // resolved value of json()
 };
 
 getCountryData("germany");
@@ -3294,4 +3299,377 @@ promise.catch((err) => {
 promise.finally(() => {
   countriesContainer.style.opacity = 1;
 });
+```
+
+- Reject a promise manually: we can immediately reject a promise by throwing an error. It's important to anticipate all the possible errors, and reject the promise manually to handle them.
+
+```js
+// we need to catch error to display the error message
+const getCountryData = function (country) {
+  return fetch(`https://restcountries.com/v2/name/${country}`)
+    .then(
+      response => {
+        if (!response) throw new Error('Country not found!');
+        return response.json();
+      }
+}
+```
+
+### 9.8 Using muliple APIs together
+
+```js
+const whereAmI = (lat, long) => {
+  return fetch(
+    `https://geocode.xyz/${lat},${long}?geoit=json&auth=876832653189406248097x49051`
+  )
+    .then((response) => {
+      if (!response) throw new Error("No location found!");
+      if (response.status == "403") throw new Error("Too many requests!");
+      return response.json();
+    })
+    .then((data) => {
+      if (!data.country) throw new Error("No country found!");
+      console.log(`You are in ${data.city}, ${data.country}`);
+      return fetch(`https://restcountries.com/v2/name/${data.country}`);
+    })
+    .then((res) => {
+      if (!res.ok) throw new Error("country not found!");
+      return res.json();
+    })
+    .then((data) => renderCountry(data[0]))
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
+whereAmI(-33.933, 18.474);
+whereAmI(52.508, 13.381);
+whereAmI(19.037, 72.873);
+```
+
+### 9.9 Asynchronous Behind the Scenes: The Event Loop
+
+Review: Javascript runtime
+![Alt text](https://i.imgur.com/sn6oAWK.jpg)
+
+- the engine: where the code is executed and objects are stores (in call stack and heap)
+- Javascript only has **1** thread of execution, which means it can only do 1 thing at a time
+- web API (DOM, AJAX, Timeout, etc.) is not part of the JS engine, it's provided to teh engine
+- Callback queue: where the callback functions are stored. When call stack is empty, the callback functions will be moved to the call stack by the event loop, and then executed
+
+> 🤔❓ If we only have one thread of execution, how can we handle asynchronous tasks in a non-blocking way?
+
+- The async tasks are executed in the WEB API environment firstly, and then a callback is registered in the call stack. When the event is fullfilled, the callback will be moved to the callback queue, which is a to-do list for the event loop. When the call stack is empty, the event loop will move the callback to the call stack, and execute it.
+
+- Example: if there's another task in the queue that takes 1 second to finish, the timer will be delayed for 1 second, and the callback will be moved to the call stack after 1 second.
+
+The process:
+
+1. setTimeout() is called, and the callback function is registered in the WEB API environment
+2. the counting down is finished, and the callback function is moved to the callback queue
+3. The callback function is the first in the callback queue
+4. The call stack is empty, and the event loop moves the callback function to the call stack, and execute it
+
+The engine doesn't have concept of time, all the async tasks are handled by the WEB API environment, and the event loop.
+
+For promises, the callback function is registered in the microtask queue, which has a higher priority than the callback queue. So the callback function in the microtask queue will be executed first.
+
+```js
+console.log("Test start");
+setTimeout(() => console.log("0 sec timer"), 0);
+Promise.resolve("Resolved promise 1").then((res) => console.log(res));
+Promise.resolve("Resolved promise 2").then((res) => {
+  for (let i = 0; i < 1000000000; i++) {}
+  console.log(res);
+});
+// the execution order is: Test start -> Resolved promise 1 -> Resolved promise 2 -> 0 sec timer
+```
+
+### 9.10 Building a Simple Promise
+
+- Promises are special objects, so we create it with the new keyword, and pass an executor function into it as the argument.
+- As soon as the creator function is called, the executor function will be executed automatically, and it will immediately start the async work.
+
+```js
+const lotteryPromise = new Promise(function (resolve, reject) {
+  // creating an instance of the Promise class
+  // executor function
+  if (Math.random() >= 0.5) {
+    resolve("You win!"); // fulfilled, the value will be passed to the then() method
+  } else {
+    reject(new Error("You lost your money!")); // rejected, the value will be passed to the catch() method
+  }
+});
+```
+
+- Consume the promise
+
+```js
+lotteryPromise
+  .then((res) => console.log(res))
+  .catch((err) => console.error(err));
+```
+
+- Then we can begin to make it async
+
+```js
+const lotteryPromise = new Promise(function (resolve, reject) {
+  // creating an instance of the Promise class
+  // executor function
+  console.log("Lottery draw is happening 🔮");
+  setTimeout(function () {
+    if (Math.random() >= 0.5) {
+      resolve("You win!"); // fulfilled, the value will be passed to the then() method
+    } else {
+      reject(new Error("You lost your money!")); // rejected, the value will be passed to the catch() method
+    }
+  }, 2000);
+});
+```
+
+- We can also promisify the callback functions to avoid callback hell
+
+```js
+const wait = function (seconds) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+
+wait(1)
+  .then(() => {
+    console.log("I waited for 1 second");
+    return wait(1);
+  })
+  .then(() => {
+    console.log("I waited for 2 seconds");
+    return wait(1);
+  })
+  .then(() => {
+    console.log("I waited for 3 seconds");
+    return wait(1);
+  })
+  .then(() => console.log("I waited for 4 seconds"));
+```
+
+### 9.11 Promisifying API
+
+```js
+// navigator.geolocation.getCurrentPosition() is a callback function, we can promisify it
+const getPosition = function () {
+  return new Promise(function (resolve, reject) {
+    // by this, we pass the response of the callback function to the resolve() function, and the error to the reject() function of our promise
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
+
+getPosition().then((pos) => console.log(pos));
+```
+
+### 9.12 Promisifying the setTimeout() Function
+
+```js
+// simply return a new promise after several seconds than we can chain it
+const wait = function (seconds) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+
+// the new Promise constructor defines the value of the promise
+function createImage(imgPath) {
+  return new Promise((resolve, reject) => {
+    const newImg = document.createElement("img");
+    newImg.src = imgPath;
+    newImg.addEventListener("load", () => {
+      document
+        .querySelector(".images")
+        .insertAdjacentElement("afterbegin", newImg);
+      resolve(newImg);
+    });
+
+    newImg.addEventListener("error", () => {
+      reject(new Error("Image not found"));
+    });
+  });
+}
+let currentImg;
+createImage("img/img-1.jpg")
+  .then((img) => {
+    currentImg = img;
+    console.log("Image 1 loaded");
+    return wait(2);
+  })
+  .then(() => {
+    currentImg.style.display = "none";
+    return createImage("img/img-2.jpg");
+  })
+  .then((img) => {
+    currentImg = img;
+    console.log("image 2 loaded");
+    return wait(2);
+  })
+  .then(() => {
+    currentImg.style.display = "none";
+    return createImage("img/img-3.jpg");
+  })
+  .then((img) => {
+    currentImg = img;
+    console.log("image 3 loaded");
+  })
+  .catch((err) => console.error(err));
+```
+
+### 9.13 Consuming Promises with Async/Await
+
+From ES6, we can use async/await to consume promises.
+
+- By adding async keyword in front of a function, we can make the function return a promise, and the value of the promise will be the return value of the function.
+- await() will stop the code execution until the promise is fulfilled, but it's not blocking the main thread, so the code after await() will be executed first.
+
+```js
+const whereAmI = async function () {
+  // location
+  const pos = await getPosition();
+  const { latitude: lat, longitude: lng } = pos.coords;
+  // reverse geoCoding
+  const response = await fetch(
+    `https://geocode.xyz/${lat},${lng}?geoit=json&auth=876832653189406248097x49051`
+  );
+  const position = await response.json();
+  const country = position.country;
+  // country data
+  const res = await fetch(`https://restcountries.com/v2/name/${country}`);
+  const data = await res.json();
+  renderCountry(data[0]);
+};
+whereAmI();
+console.log("FIRST");
+```
+
+### 9.14 Error Handling with try...catch
+
+```js
+const whereAmI = async function () {
+  try {
+    // location
+    const pos = await getPosition();
+    const { latitude: lat, longitude: lng } = pos.coords;
+    // reverse geoCoding
+    const response = await fetch(
+      `https://geocode.xyz/${lat},${lng}?geoit=json&auth=876832653189406248097x49051`
+    );
+    const position = await response.json();
+    const country = position.country;
+    // country data
+    const res = await fetch(`https://restcountries.com/v2/name/${country}`);
+    const data = await res.json();
+    renderCountry(data[0]);
+    return `You are in ${country}`;
+  } catch (err) {
+    console.error(err);
+    renderError(`Something went wrong ${err.message}`);
+  }
+};
+```
+
+### 9.15 Returning Values from Async Functions
+
+Async functions always return a promise, so we can use then() method to consume the promise.
+But if there's an error in the async function, we cannot reach the return statement, but the promise will still be fulfilled, and the value of the promise will be undefined.
+
+```js
+whereAmI()
+  .then((res) => console.log(res))
+  .catch((err) => console.error(err));
+```
+
+- So we need to throw an error again in the catch() method, and then we can catch the error in the next catch() method
+
+```js
+...
+  } catch (err) {
+    console.error(err);
+    renderError(`Something went wrong ${err.message}`);
+    throw err;
+  }
+...
+```
+
+- In ES6, we cannot use await() in the top level code, so we need to wrap the code in an IIFE
+
+```js
+(async function () {
+  try {
+    const city = await whereAmI();
+    console.log(city);
+  } catch (err) {
+    console.error(err);
+  }
+})();
+```
+
+### 9.16 Running Promises in Parallel
+
+- Instead of using await() one another, we can use the combinator Promise.all() to run promises in parallel, and the result will be an array of the results of all the promises.
+- Promise.all accepts an array of requests, and returns an array of fulfilled promises. If one of the promises is rejected, the whole Promise.all() will be rejected.
+
+```js
+const data = await Promise.all([
+  fetch(`https://restcountries.com/v2/name/${country1}`),
+  fetch(`https://restcountries.com/v2/name/${country2}`),
+  fetch(`https://restcountries.com/v2/name/${country3}`),
+]);
+```
+
+### 9.17 Other combinators: Promise.race(), Promise.allSettled(), Promise.any()
+
+- in Promise.race(), no matter the promise is fulfilled or rejected, the result will be the first promise that is settled
+
+```js
+(async function () {
+  const res = await Promise.race([
+    getJSON(`https://restcountries.com/v2/name/italy`),
+    getJSON(`https://restcountries.com/v2/name/japan`),
+    getJSON(`https://restcountries.com/v2/name/taiwan`),
+  ]);
+  console.log(res[0]);
+})();
+```
+
+- We can use Promise.race() with a timer to prevent the promise from taking too long to settle
+
+```js
+const timeout = function (s) {
+  return new Promise(function (_, reject) {
+    setTimeout(function () {
+      reject(new Error("Request took too long!"));
+    }, s * 1000);
+  });
+};
+
+Promise.race([getJSON(`https://restcountries.com/v2/name/italy`), timeout(3)])
+  .then((res) => console.log(res[0]))
+  .catch((err) => {
+    console.log(err);
+  });
+```
+
+- A new method in ES2020: Promise.allSettled() returns an array of all the settled promises, no matter they are fulfilled or rejected
+
+```js
+Promise.allSettled([
+  Promise.resolve("success"),
+  Promise.reject("ERROR"),
+  Promise.resolve("success"),
+])
+  .then((res) => console.log(res))
+  .catch((err) => console.error(err));
+// the result is an array of objects, each object has a status property, which is either fulfilled or rejected
+```
+
+- Promise.any() returns the first fulfilled promise, and ignores the rejected promises
+
+```js
+
 ```
