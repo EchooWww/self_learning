@@ -1189,3 +1189,83 @@ boolean isLegal (List<String> board, int col, int row) {
 }
 
 ```
+
+# 🕸️ Graph
+
+## Graph introduction and implementation
+
+### 2 ways to represent a graph
+
+In essence, a graph is similar to a tree. The biggest difference is that a tree has no cycle, while a graph can have cycles.
+
+In practical, we implement a graph by using an adjacency list（邻接表）or an adjacency matrix（邻接矩阵）.
+![Alt text](image-1.png)
+
+- Adjacency list: a list of lists. The index of the outer list represents the vertex, and the inner list represents the adjacent vertices of the vertex.
+
+  👍 More space efficient than adjacency matrix.
+
+  👎 But we cannot quickly find whether there is an edge between 2 vertices.
+
+- Adjacency matrix: a 2D array of boolean values. The row and column represent the vertices, and the value represents whether there is an edge between the 2 vertices.
+
+  👎 More space-consuming than adjacency list.
+
+  👍 But we can quickly find whether there is an edge between 2 vertices.
+
+### Non-directed graph and directed graph
+
+Non-directed is actually a special case of directed graph, where the edges are bidirectional.
+
+🔧 To implement a non-directed graph, in adjacency list, we need to add the edge in both vertices' lists. In adjacency matrix, we need to set both `matrix[i][j]` and `matrix[j][i]` to be true.
+
+### Degree of a vertex
+
+- In non-directed graph, the degree of a vertex is the number of edges connected to the vertex.
+- In directed graph, the degree of a vertex is the number of edges connected to the vertex, including both **in-degree** and **out-degree**.
+
+### Weighted graph
+
+We can add weights to the edges of a graph.
+
+🔧 To implement a weighted graph, in adjacency list, we can use a pair to store the vertex and the weight. In adjacency matrix, we can use a 2D array of integers to store the weights.
+
+## Graph traversal
+
+We can base the traversal of graph on the framework of a tree traversal.
+
+💡 The framework of a tree traversal:
+
+```java
+void traverse(TreeNode root) {
+    if (root==null) return;
+    // pre-order traversal
+    for(TreeNode child: root.children) {
+        traverse(child);
+    }
+    // post-order traversal
+}
+```
+
+👀 The difference is that we need to mark the visited vertices to avoid infinite loop. We can have a boolean array to keep the record.
+
+### Framework of graph traversal
+
+```java
+boolean[] visited;
+boolean[] onPath;
+
+void traverse(int s) {
+    if (visited[s]) return;
+    visited[s] = true;
+    // Make the choice
+    onPath[s] = true;
+    for (int neighbour: graph[s]) {
+        traverse(neighbour);
+    }
+    // Cancel the choice
+    onPath[s] = false;
+}
+```
+
+🧠 onPath and visited: onPath is dynamic, when the traversal path includes the vertex, we set onPath to be true. When the traversal path excludes the vertex, we set onPath to be false. visited is static, when we have traversed the vertex, we set visited to be true. When we need to return the paths, we should use a onPath array to store the path.
