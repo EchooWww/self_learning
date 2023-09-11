@@ -310,7 +310,7 @@ Hoisting: makes some types of variables accessible/ usable in the code before th
 | ------------------------------------ | ---------------------- | ------------------------------------ | -------------- |
 | var                                  | yes                    | undefined                            | function scope |
 | let & const                          | no                     | < unitialized > , temporal dead zone | block scope    |
-| function declarstions                | no                     | -                                    | block scope    |
+| function declarations                | yes                    | -                                    | block scope    |
 | function expressions/ Arrow function | depends on the keyword | -                                    | block scope    |
 
 - Temporal dead zone: within the scope, but before the declaration. We cannot access the variable in TDZ. We'll get a reference error: cannot access before initialization. If we try to access the variable not ever declared, we'll get a 'is not defined' error.
@@ -3673,3 +3673,331 @@ Promise.allSettled([
 ```js
 
 ```
+
+## 10. Modern JavaScript Development: Modules, Tools and Setup
+
+♻️ Modules=>bundling=>transpiling=>javascript bundle in production
+🔧 Tools: npm, parcel, webpack, babel
+
+### 10.1 Modules in JavaScript
+
+- A module is usually a standalone file, is a reusable piece of code that encapsulates implementation details.
+- In a module, we can import contents from other modules, and export contents to other modules. The imported modules are called dependencies, coz they are depended on by the current module.
+- Compose software: we can put the modules together to build complex applications
+
+|                     | ES6 Modules              | Regular Script |
+| ------------------- | ------------------------ | -------------- |
+| Top-level variables | Scope to the module      | Global scope   |
+| Default mode        | Strict mode              | Sloppy mode    |
+| Top-level this      | undefined                | window         |
+| Imports and exports | Yes                      | No             |
+| HTML Linking        | `<script type="module">` | `<script>`     |
+| File downloading    | Asynchronous             | Synchronous    |
+
+#### Importing ES6 Modules
+
+- Imports are hoisted, so we can import the modules at the top of the file, and use them later.
+
+  > 💡 review of the concept of hoisting: the variables and functions are hoisted to the top of the scope before execution, so we can use them before they are declared. The import statements are also hoisted, so even when we put them in the end, they will be executed first, before the current module
+
+- When the current module is parsed (read but not executed), the imports will be resolved, and the dependencies will be downloaded (asynchronously). Then the current module will be executed.
+- The import is a **live connection** to the exported value, so if the exported value changes, the imported value will change, too. It's a reference in memory, not a copy.
+
+```js
+import "./shoppingCart.js";
+console.log("Importing module");
+
+// in shoppingCart.js
+console.log("Exporting module");
+
+// the result is:
+// Exporting module
+// Importing module
+// All the codes in the imported module will be executed first, and then the codes in the current module will be executed
+```
+
+#### Export: named exports and default exports
+
+🟡 Beware export can only happen in top-level code, not inside a block, or a function
+
+Name exports:
+
+- we can export multiple values from a module, and we can import them with the same name, or with a different name, but we need to use the same name in the curly braces
+- We can change the name of the exported value with the as keyword
+
+```js
+// export
+export const addToCart = function (product, quantity) {
+  cart.push({ product, quantity });
+  console.log(`${quantity} ${product} added to cart`);
+};
+// import
+import { addToCart } from "./shoppingCart.js";
+// or use the as keyword
+import { addToCart as add, totalPrice, tq } from "./shoppingCart.js";
+```
+
+- We can also import all the exported values as an object, and use the object to access the exported values. We we use the variables, we need to use the object name in front of them.
+
+```js
+import * as ShoppingCart from "./shoppingCart.js";
+ShoppingCart.addToCart("bread", 5);
+```
+
+- Default exports: we can only have one default export in a module, and we can import it with any name we want, without the curly braces
+
+```js
+// export
+export default function (product, quantity) {
+  cart.push({ product, quantity });
+  console.log(`${quantity} ${product} added to cart`);
+}
+// import
+import add from "./shoppingCart.js";
+```
+
+### 10.2 Top-level await
+
+Starting from ES2022, we can use await() in the top-level code in a module, without an async function. But we need to add the type="module" attribute in the script tag.
+
+```js
+const res = await fetch("https://restcountries.com/v2/name/portugal");
+const data = await res.json();
+console.log(data);
+```
+
+👎 this can be problematic, because it might block the whole page from loading.
+
+👍 Let's see a more real-world example, where top-level await is useful (for return values of async functions)
+
+```js
+const getLastPost = async () => {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+  const data = await res.json();
+  return { title: data.at(-1).title, body: data.at(-1).body };
+};
+// This is not gonna work, coz async functions return promises instead of values
+const lastPost = getLastPost();
+console.log(lastPost);
+// we can use then() method to consume the promise, but this is not very clean
+// getLastPost().then((res) => console.log(res));
+
+// So we can use top-level await
+const lastPost = await getLastPost();
+```
+
+🔺 The top-level await in imported module would not only block the execution of the imported module, but also the execution of the current module.
+
+### 10.3 The Module Pattern before ES6 Modules
+
+- Modules are a great way to encapsulate code, but they are not the only way to do it. We can use the module pattern to encapsulate code in an object, and expose only the public interface to the outside.
+- We can wrap it in an IIFE, and return an object with the public methods. The private methods are not accessible from the outside.
+
+```js
+const = ShoppingCart = (function () {
+  const cart = [];
+  const shippingCost = 10;
+  const totalPrice = 237;
+  const totalQuantity = 23;
+  const addToCart = function (product, quantity) {
+    cart.push({ product, quantity });
+    console.log(`${quantity} ${product} added to cart`);
+  };
+  const orderStock = function (product, quantity) {
+    console.log(`${quantity} ${product} ordered from supplier`);
+  };
+  return {
+    addToCart,
+    cart,
+    totalPrice,
+    totalQuantity,
+  };
+})();
+
+// so we can access the public methods and properties
+ShoppingCart.addToCart("apple", 4);
+
+// but we cannot access the private methods and properties
+ShoppingCart.shippingCost; // undefined
+```
+
+- We can use the public methods to manipulate the private properties even after the IIFE is executed, because the closures are still there: the public methods still have access to the variables in its birthplace.
+
+### 10.4 CommonJS Modules
+
+For node.js apps, we can use CommonJS modules, which are synchronous, and they are not available in the browser. We can use the require() function to import modules, and the module.exports to export modules.
+
+```js
+// export: with the dot notation
+export.addToCart = function (product, quantity) {
+  cart.push({ product, quantity });
+  console.log(`${quantity} ${product} added to cart`);
+};
+// import: with the require() function
+const { addToCart } = require("./shoppingCart.js");
+```
+
+### 10.5 A Brief Introduction to command line
+
+Some common commands:
+
+```bash
+## we are always in a folder, to check the content of the folder:
+ls
+## to go to a folder:
+cd folderName
+## to go back to the parent folder:
+cd ..
+## to go back to the root folder:
+cd ~
+## to create a new folder under the current folder:
+mkdir folderName
+## to delete a folder:
+rm -R folderName
+## to delete an empty folder:
+rmdir folderName
+## to clear the terminal:
+clear
+## auto complete the file name: hit tab
+## to create a new file:
+touch fileName
+## to delete a file:
+rm fileName
+## to move a file:
+mv fileName folderName
+
+## to open a file in live server:
+live-server
+## Arrow up to see the previous command
+```
+
+### 10.6 Introduction to NPM
+
+- Before we have npm, we just link external scripts in the html file, and use the global variables in the scripts.
+- We can use npm without node.js, but we need node.js to run the scripts.
+- Without bundler, we need to use ES6 syntax to import and export modules.
+
+```js
+// for example, we can use the lodash library to manipulate arrays and objects
+import cloneDeep from "../node_modules/lodash-es/cloneDeep.js";
+
+const state = {
+  cart: [
+    { product: "bread", quantity: 5 },
+    { product: "pizza", quantity: 5 },
+  ],
+  user: { loggedIn: true },
+};
+// deep clone: clone all the nested objects without sharing the same reference
+const stateClone = Object.assign({}, state);
+const stateDeepClone = cloneDeep(state);
+state.user.loggedIn = false;
+console.log(stateClone); // the user.loggedIn property is also changed, because the user object is not cloned, but shared the same reference
+console.log(stateDeepClone); // the user.loggedIn property is not changed, because the user object is cloned
+```
+
+### 10.7 Bundling with Parcel and NPM Scripts
+
+to bundle our modules together..
+
+- install parcel as a dev dependency
+
+```bash
+npm i parcel --save-dev
+```
+
+- run parcel in the terminal
+
+```bash
+## as parcel is not installed globally, we can run it with npx
+## index.html is our entry point, where we include our script
+npx parcel index.html
+```
+
+### 10.7 Review: Writing Clean and Modern JavaScript
+
+**General:**
+
+- Write readable code: use descriptive variable names, use comments, use meaningful indentation, etc.
+- DRY principle: Don't Repeat Yourself
+- Don't use var, use const and let instead
+- Use strong type checking: use === and !== instead of == and !=
+
+**Functions:**
+
+- Each function should have only one task
+- Don't use more than 3 function parameters
+- Use arrow functions when they make the code more readable (callback functions, one-liner functions, etc.)
+
+**OOP:**
+
+- Use ES6 classes
+- Encapsulate code in modules
+- Implement method chaining
+- DON'T use arrow functions as methods in objects, because the this keyword will point to the global object, not the object itself
+
+**Avoid nesting:**
+
+- Use guard clauses instead of if-else for early return
+- Use ternary operator instead of if-else for simple conditions
+- Use multiple if statements instead of if-else for multiple conditions
+- Avoid for loops, use forEach(), map(), filter(), reduce(), find(), etc. instead
+- Avoid callback-based asynchronous APIs
+
+**Asynchronous:**
+
+- Consume promises with async/await for better readability
+- Whenever possible, run promises in parallel, instead of chaining them (Promise.all())
+- Handle errors and promise rejections, by using try...catch block
+
+### 10.8 Declarative and Functional JavaScript
+
+Imperative vs Declarative programming
+
+- Imperative: how to do things
+- Declarative: what to do
+
+Declerative is more and more popular in modern javascript, because it's more readable, and easier to maintain.
+
+```js
+// Imperative
+const arr = [1, 2, 3];
+for (let i = 0; i < arr.length; i++) {
+  console.log(arr[i]);
+}
+// Declarative
+const arr = [1, 2, 3];
+arr.forEach((num) => console.log(num));
+// or
+const arr = [1, 2, 3];
+arr.map((num) => num * 2);
+```
+
+📖 Functional programming
+
+- Declarative programming paradigm
+- Based on the idea of writing software by combining many pure functions, avoiding side effects and mutating data
+
+  🔴 Side effects: Modification of any data outside of the function (mutating external variables, logging to console, writing to DOM, etc.)
+
+  🟢 Pure function: A function without side effects, and always returns the same result given the same input
+
+  🟢 Immutability: State (data) is never modified! Instead, state is copied, and the copy is mutated and returned. Example: in Redux, we never mutate the state, but return a new state.
+
+#### Functional programming techniques
+
+- Try avoid data mutations
+  ```js
+  Object.freeze(); // make an object immutable
+  // it's not a deep freeze, so we need to freeze all the nested objects
+  ```
+- Use built-in methods that don't produce side effects
+- Do data transformations with methods like map(), filter(), reduce()
+- Try to avoid for loops, use forEach(), map(), filter(), reduce(), find(), etc. instead
+
+Use declarative syntax:
+
+- Use array and object destructuring
+- Use the spread operator
+- Use the ternary operator
+- Use template literals
