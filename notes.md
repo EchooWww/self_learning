@@ -243,3 +243,123 @@ for number in range(1, 11, 3):
   print(number) ## 1, 4, 7, 10
 
 ```
+
+3. while loop
+
+```py
+while something_is_true:
+  # do something
+```
+
+### Functions
+
+```py
+def my_function():
+  # do something
+  # do something
+  # do something
+  return something
+my_function()
+```
+
+### Indentation in Python
+
+- When defining a function, we should indent the code inside the function body, and when calling a function, we should not indent the code.
+- If we have conditional statements inside a function, we should further indent the code inside the conditional statements.
+- Tab or spaces? It's recommended to use 4 spaces for indentation in Python.
+
+### Global and Local Scope in Python
+
+If we define a variable outside a function, it's a global variable, and we can access it inside the function by using the `global` keyword. If we define a variable inside a function, it's a local variable, and we cannot access it outside the function.
+
+```py
+enemies = 1
+def increase_enemies():
+  global enemies
+  enemies += 1
+  print(f"enemies inside function: {enemies}")
+```
+
+### Dictionary
+
+- The syntax for a dictionary is `{key: value}`, we can use `[]` notation to retrieve the value of a key.
+
+```py
+programming_dictionary = {
+  "Bug": "An error in a program that prevents the program from running as expected.", "Function": "A piece of code that you can easily call over and over again.",
+  "Function": "A piece of code that you can easily call over and over again.",
+}
+
+# get the value of a key
+print(programming_dictionary["Function"])
+
+```
+
+- Play with dictionaries
+
+```py
+programming_dictionary["Loop"] = "The action of doing something over and over again." # The dictionary now has 3 entries
+
+# create an empty dictionary
+empty_dictionary = {}
+# wipe an existing dictionary
+programming_dictionary = {}
+# edit an item in a dictionary
+programming_dictionary["Bug"] = "A moth in your computer."
+
+```
+
+- Loop through a dictionary: if we use `for thing in dictionary`, we will only get the keys of the dictionary. If we wanna also get the values, we can use `for key in dictionary: print(dictionary[key])`
+
+```py
+for key in programming_dictionary:
+  print(key) # Bug, Function, Loop
+  print(programming_dictionary[key])
+```
+
+### Nesting Lists and Dictionaries
+
+Nesting is like putting a folder inside another. We can nest a list inside a dictionary, a dictionary inside a list, a dictionary inside a dictionary, and a list inside a list, like `{key1: [list], key2: {dictionary}}
+`
+
+```py
+# Nest lists and dictionaries within a dictionary
+travel_log = {
+  "France":{
+    "Paris":3,
+    "Lille":2,
+    "Dijon":1
+    },
+  "Germany": {
+    "cities_visited":["Berlin", "Hamburg", "Stuttgart"],
+    "total_visits":3
+  }
+}
+
+print(travel_log["Germany"]["cities_visited"])
+
+# Nesting a dictionary inside a list
+travel_log=[
+  {
+    "country":"France",
+    "city_visited":["Paris", "Lille", "Dijon"],
+    "total_visits": 12,
+  },
+  {
+    "country":"Germany",
+    "city_visited":["Paris", "Lille", "Dijon"],
+    "total_visits": 12,
+  }
+]
+print(travel_log[1]["country"]) # Germany
+```
+
+### docstrings
+
+We can use docstrings to document our functions, it's a good practice to do so. Docstrings can contain multiple lines of text, and they are enclosed in triple quotes.
+
+```py
+def add(n1, n2):
+  """This is a docstring"""
+  return n1 + n2
+```
