@@ -363,3 +363,94 @@ def add(n1, n2):
   """This is a docstring"""
   return n1 + n2
 ```
+
+### Scope
+
+### Modify Global Variables (not recommended)
+
+- Unlike other programming languages, Python does not have block scope, it only has global scope and local scope. All the if statements, for loops, while loops, do not create a new scope in Python.
+- Unike Java, when we try to reassign a global variable inside a function directly, we will create a new local variable instead of reassigning the global variable.
+
+```py
+enemies = 1 # global variable
+def increase_enemies():
+  enemies = 2 # local variable, the global variable is still 1
+  print(f"enemies inside function: {enemies}")
+increase_enemies()
+```
+
+- To modify a global variable inside a function, we should use the `global` keyword.
+
+```py
+enemies = 1 # global variable
+def increase_enemies():
+  global enemies
+  enemies = 2 # local variable, the global variable is still 1
+  print(f"enemies inside function: {enemies}")
+increase_enemies()
+```
+
+- But that can be dangerous, we should avoid modifying global variables as much as possible. If we want that value, we can simple return it from the function.
+
+```py
+enemies = 1 # global variable
+def increase_enemies():
+  return enemies + 1
+enemies = increase_enemies()
+```
+
+#### Global Constants
+
+- The naming convention for global constants is to use all capital letters, and use `_` to separate words.
+
+```py
+PI = 3.14159
+TWITTER_HANDLE = "@yuanyu90221"
+```
+
+#### Practice with Functions
+
+```py
+import random
+
+EASY_CHANCES = 10
+HARD_CHANCES = 5
+
+def check_answer(guess, answer, chances):
+    if guess == answer:
+      print(f"Congratulations! You guessed the correct number {guess}!")
+      return chances
+    elif guess < answer:
+        print ("Too low.")
+    else: print ("Too high.")
+    return chances - 1
+
+def set_difficulty():
+  while True:
+      difficulty = input(
+          "Welcome to the Number Gueesing Game! \nI'm Thinking of a number between 1 and 100. \nChoose a difficulty. Type 'easy' or 'hard':  "
+      )
+      # instead of setting the global variable, we return the value of chances
+      if difficulty == "easy":
+          return EASY_CHANCES
+      elif difficulty == "hard":
+          return HARD_CHANCES
+      else:
+        print("Wrong input. Please choose again!")
+
+def game():
+  answer = random.randint(1,100)
+  chances = set_difficulty()
+  guess = 0
+
+  while guess != answer:
+    guess = int(input(f"You have {chances} attempts remaining to guess the number. \nMake a guess: "))
+    # instead of setting the global variable, we pass it as an argument, and return it
+    chances = check_answer(guess, answer, chances)
+    if chances == 0:
+      print("You ran out of guess. You lose :(")
+    elif guess != answer :
+      print("Guess again")
+
+game()
+```
