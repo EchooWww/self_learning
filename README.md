@@ -2,6 +2,6 @@ Study log for front-end development, containing notes and code snippets. Will be
 
 ### Table of Contents
 
-- [React Notes] (/React/React.md)
-- [JavaScript Notes] (/JavaScript/JavaScript.md)
-- [TypeScript Notes] (/TypeScript/TypeScript.md)
+- [React Notes](/React/React.md)
+- [JavaScript Notes](/JavaScript/JavaScript.md)
+- [TypeScript Notes](/TypeScript/TypeScript.md)
