@@ -1,5 +1,7 @@
 ## Introduction to Typescript
 
+### What is Typescript?
+
 Typescript is a **superset** of Javascript. It adds types to Javascript. Typescript is **compiled** to Javascript.
 
 Taking advantage of Typescript's type system allows us to catch errors at compile time instead of runtime.
@@ -81,8 +83,6 @@ console.log(greetings);
 export {}; // this file is a module
 ```
 
-## Good Practices
-
 ### Type inference
 
 We can omit the type when it's obvious to avoid redundancy.
@@ -119,7 +119,9 @@ This is not a good practice, because we lose the benefits of TS. To avoid this, 
 
 `any` is not actually a type, but a marker that means we wanna "turn off" TS type checking for this variable.
 
-## Typescript Functions
+## Typescript Basics
+
+### Functions
 
 In functions, we can specify the type of the parameters and the return type.
 
@@ -161,7 +163,7 @@ const throwError = (message: string): never => {
 };
 ```
 
-## Typescript Objects
+### Typescript Objects
 
 return an object:
 
@@ -203,7 +205,7 @@ const createUser = (user: User): User => {
 
 We can use our own type just like any other types.
 
-### easy use cases for objects
+### Easy use cases for objects
 
 The `readonly` keyword can be used to make the object immutable:
 
@@ -245,7 +247,7 @@ type cardDetails = cardNumber &
   };
 ```
 
-## Typescript Arrays
+### Typescript Arrays
 
 If we simply initialize an array with empty brackets, typescript will infer the type as `never[]`, so always specify the type of the array.
 
@@ -270,7 +272,7 @@ Readonly array:
 const users: ReadonlyArray<User> = [];
 ```
 
-## Union Types
+### Union Types
 
 Union is useful when we're not sure about the exact type of the variable. But use it with caution!
 
@@ -313,9 +315,9 @@ let userType: "user" | "admin" | "guest" = "user";
 userType = "admin";
 ```
 
-## Typescript Tuples and Enums
+### Tuples and Enums
 
-### Tuple: need to be careful!
+### Tuples
 
 We can use tuples to specify the type of each element in an array, which forms a tuple. So we can have a specific type for each element in the array.
 
@@ -329,7 +331,7 @@ const red: RGB = [255, 0, 0];
 
 A problem is, we can still push elements to the array, and typescript won't show any warning. Be cautious when using tuples!
 
-### Enum
+#### Enum
 
 Sometimes we wanna restrict the value of a variable to a set of values. We can use enum for this purpose.
 
@@ -365,16 +367,18 @@ const enum SetChoice {
 }
 ```
 
-## Typescript Interfaces
+### Interfaces
 
-Interface is like a protocol, which defines the structure of an object. It's a contract that an object needs to follow.
+Interface is like a protocol, which defines the structure of an object. It's a contract that an object needs to follow. We can include properties and methods in an interface, which makes it more powerful than type aliases under some circumstances.
 
 ```ts
 interface User {
   name: string;
   age: number;
   isPaid: boolean;
-  startTrial: () => void;
+  // startTrial: () => void;
+  startTrial(): string; // both syntaxes are acceptable. Means no parameter needed and return a string.
+  getCoupon(couponname: string): string; // means a parameter is needed and return a string.
 }
 
 const user1: User = {
@@ -384,5 +388,391 @@ const user1: User = {
   startTrial: () => {
     console.log("start trial");
   },
+  // the parameter name can be different from the interface, as long as the type is correct
+  getCoupon: (name: string) => {
+    return couponname;
+  },
 };
+```
+
+### Re-open and extend an interface
+
+We are able to "reopen" an interface and add more properties/methods to an existing interful. This is useful when we are using a third party library and we want to add more properties/methods to the interface of the library. "Re-opening" an interface is also called "declaration merging".
+
+```ts
+interface User {
+  age: number;
+  isPaid: boolean;
+  startTrial(): string;
+  getCoupon(couponname: string): string;
+}
+
+// we just need to simply use the same name of the interface, and add the new properties/methods as we need
+interface User {
+  email: string;
+}
+
+const user1: User = {
+  name: "Echo",
+  age: 27,
+  isPaid: true,
+  startTrial: () => {
+    console.log("start trial");
+  },
+  getCoupon: (name: string) => {
+    return couponname;
+  },
+  email: "echo@2333.com",
+};
+```
+
+We are also able to extend an interface, to let it inherit the properties/methods of another interface, as well as customizing its own properties/methods.
+
+```ts
+interface User {
+  age: number;
+  isPaid: boolean;
+  startTrial(): string;
+  getCoupon(couponname: string): string;
+}
+
+interface Admin extends User {
+  adminSince: Date;
+  getAdminSince(): Date;
+}
+```
+
+### Interfaces vs Type Aliases
+
+The documentation of Typescript recommends using interfaces over type aliases. But there are some different opinions on this topic.
+
+Type aliases are more flexible than interfaces. For example, type can be defined as a single type, but interface must be object-based.
+
+```ts
+type SType = string | number; // acceptable
+type TType = {name:string} | {age:number}; // acceptable
+
+interface SInterface = string | number; // error
+
+```
+
+What's good about interface is it allows us to merge interfaces, which is not possible with type aliases. But this also means when we want to overwrite an interface, we need to re-declare the whole interface with a different name.
+
+```ts
+interface User {
+  name: string;
+  age: number;
+}
+interface User {
+  isPaid: boolean;
+}
+```
+
+## Typescript in Real Projects
+
+Init a project with Typescript:
+
+```bash
+tsc --init
+```
+
+And we can see our `tsconfig.json` file.
+
+We usually have a `src` folder for our source code, and a `dist` folder for our compiled code. To make our compiled `js` file go to the `dist` folder, we can specify the `outDir` property in the `tsconfig.json` file.
+
+```json
+{
+  "compilerOptions": {
+    "outDir": "./dist"
+  }
+}
+```
+
+To compile the `ts` file as we specified in the `tsconfig.json` file, we can simply run `tsc-w` in the terminal.
+
+### Classes, Constructors and Access Modifiers
+
+Like in other OOP languages, we can use classes in Typescript to create objects.
+
+In a class definition, we can specify the type of the properties and the return type of the methods.
+
+```ts
+class User {
+  name: string;
+  age: number;
+  isPaid: boolean;
+
+  constructor(name: string, age: number, isPaid: boolean) {
+    this.name = name;
+    this.age = age;
+    this.isPaid = isPaid;
+  }
+}
+```
+
+Like javascript, we can add access modifiers to the properties and methods. The default access modifier is `public`.
+
+```ts
+class User {
+  public name: string;
+  private age: number;
+  protected isPaid: boolean;
+
+  constructor(name: string, age: number, isPaid: boolean) {
+    this.name = name;
+    this.age = age;
+    this.isPaid = isPaid;
+  }
+}
+```
+
+This way, the private properties cannot be accessed outside the class, and the protected properties can only be accessed by the class and its subclasses. We can also use `#` to declare private properties. (Both acceptable in TS, but there's no `private` in JS). We can also have private method in a class, which can only be accessed by the class itself.
+
+We can also move the properties declaration to the constructor, which is a shorthand way to declare properties. They will be compiled to the same thing.
+
+```ts
+class User {
+  constructor(
+    public name: string,
+    private age: number,
+    protected isPaid: boolean
+  ) {}
+}
+```
+
+We also have `protedted` access modifier, which means the property can only be accessed by the class and its subclasses: the classes `extends` the class.
+
+### Getters and Setters
+
+We always start with the `set` or `get` keyword, and then the name of the property we want to get. We can also add access modifiers to the getters and setters.
+
+Setter doesn't return anything, it doesn't need any return type, even `void`.
+
+```ts
+class User {
+  constructor(
+    public name: string,
+    private age: number,
+    protected isPaid: boolean
+  ) {}
+
+  get paid() {
+    return this.isPaid;
+  }
+
+  set paid(isPaid: boolean) {
+    this.isPaid = isPaid;
+  }
+}
+```
+
+Getters don't necessarily need to return the value of a private property, we can also do some calculation in the getter.
+
+### Interfaces and Abstract Classes
+
+We can use interfaces as protocols to define the structure of a class. Interface is just a contract that a class needs to follow, it doesn't have any implementation. We provide implementation in the class.
+
+```ts
+interface UserInterface {
+  name: string;
+  age: number;
+  isPaid: boolean;
+  startTrial(): string;
+  getCoupon(couponname: string): string;
+}
+
+class User implements UserInterface {
+  constructor(
+    public name: string,
+    private age: number,
+    protected isPaid: boolean
+  ) {}
+
+  get paid() {
+    return this.isPaid;
+  }
+
+  set paid(isPaid: boolean) {
+    this.isPaid = isPaid;
+  }
+
+  startTrial() {
+    return "trial started";
+  }
+
+  getCoupon(couponname: string) {
+    return couponname;
+  }
+}
+```
+
+On the other hand, abstract classes are classes that cannot be instantiated. We can only extend abstract classes. Abstract classes are useful when we want to provide some common functionality to the subclasses, but we don't want to instantiate the abstract class itself.
+
+To instantiate from a class, we must guarentee that all methods in that class are concrete.
+
+### Generics
+
+Compare the 3 versions, we can see that the last version enables us to accept any type of argument, and return the same type of argument. This is the power of generics.
+
+```ts
+const score: Array<number> = [1, 2, 3, 4, 5];
+const names: Array<string> = ["a", "b", "c", "d", "e"];
+
+function identityOne(val: number | boolean): number | boolean {
+  return val;
+}
+
+function identityTwo(val: any): any {
+  return val;
+}
+
+function identityThree<T>(arg: T): T {
+  return arg;
+}
+```
+
+We can also use generics with arrays
+
+```ts
+function loggingIdentity<T>(arg: T[]): T[] {
+  console.log(arg.length); // Array has a .length, so no more error
+  return arg;
+}
+// or
+function loggingIdentity<T>(arg: Array<T>): Array<T> {
+  console.log(arg.length); // Array has a .length, so no more error
+  return arg;
+}
+```
+
+Convert a generic function declaration to an arrow function:
+
+```ts
+
+function getSearchProducts<T,>(arg: T[]): T {
+  return arg[0];
+}
+// the arrow function version
+function getSearchProducts = <T,>(arg: T[]): T => {
+  return arg[0];
+}
+```
+
+Putting a comma after the generic type can help us to differentiate the generic type from the html tag.
+
+We can also make a generic class.
+
+## Narrowing
+
+`typeof` can be used as a type guard to narrow the type of a variable. We need to be careful that `typeof(null)` and `typeof(T[])` is actually `object`, so we need to check null first by just putting the value inside the if statement.
+
+```ts
+function printAll(st: string | string[] | null) {
+  if (st) {
+    if (typeof st === "object") {
+      for (const s of st) {
+        console.log(s);
+      }
+    } else {
+      console.log(st);
+    }
+  }
+}
+```
+
+Other than `typeof`, we can also use the `in` operator to narrow the type of a variable. It enables us to check if a property exists in an object. We can wrap the property name in quotes.
+
+```ts
+interface User {
+  name: string;
+  email: string;
+}
+
+interface Admin {
+  name: string;
+  email: string;
+  adminNo: number;
+}
+
+function isAdmin(user: User | Admin) {
+  if ("adminNo" in user) {
+    return true;
+  } else {
+    return false;
+  }
+}
+```
+
+We can also use `instanceof` to check if an object is an instance of a class. Unlike `typeof`, we can check our own classes or non-primitive types, everything created with `new` keyword, with `instanceof`.
+
+We can also use type predicates to narrow the type of a variable. We can use `is` to define a type predicate. The return value of the type predicate is a boolean, and the type of the variable is the type we defined in the type predicate.
+
+```ts
+type Fish = {
+  swim: () => void;
+};
+type Bird = {
+  fly: () => void;
+};
+
+// function move(animal: Fish | Bird) {
+//   return (animal as Fish).swim() !== undefined;
+// }
+// we can make this better!!
+function isFish(animal: Fish | Bird): animal is Fish {
+  return (animal as Fish).swim() !== undefined;
+} // type predicate: if the return value is true, then the type of the variable is Fish, otherwise it's Bird
+
+function getFood(pet: Fish | Bird) {
+  if (isFish(pet)) {
+    return "Fish food";
+  } else {
+    return "Bird food";
+  }
+}
+```
+
+Most of the time, we'll be dealing with slightly more complex structures than the cases above.
+
+```ts
+interface Circle {
+  kind: "circle";
+  radius: number;
+}
+
+interface Square {
+  kind: "square";
+  sideLength: number;
+}
+
+interface Rectangle {
+  kind: "rectangle";
+  width: number;
+  height: number;
+}
+
+type Shape = Circle | Square;
+
+function getTrueShape(shape: Shape) {
+  if (shape.kind === "circle") {
+    return Math.PI * shape.radius ** 2;
+  }
+  return shape.sideLength ** 2;
+}
+```
+
+There's also a `never` type in TS, which means the function will never return anything. We can use it to make sure we have covered all the cases in the function, which is called "exhaustive checking".
+
+```ts
+function getTrueShape(shape: Shape) {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2;
+    case "square":
+      return shape.sideLength ** 2;
+    default:
+      const _exhaustiveCheck: never = shape;
+      return _exhaustiveCheck;
+  }
+}
 ```
