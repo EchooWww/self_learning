@@ -141,9 +141,42 @@ We can remove a link with `rm` command or `unlink` command with the link name.
 
 To see the timestamp of the file when it's last modified, we can use `ls -lt` command. It will show the latest modified file first, we can also reverse the order with `ls -ltr`.
 
-### Filters & IO Redirection
+### Filters
 
 #### Take `grep` as an example
-`grep keyword filename` to search for a keyword in a file, the line containing the keyword will be displayed. (Note that Linux is case-sensitive, so searching for `keyword` will not match `Keyword`, but we could also use `grep -i keyword filename` to ignore the case)  
 
-- The default direction is `<', so `grep keyword filename` is the same as `grep keyword < filename`, means the 
+`grep keyword filename` to search for a keyword in a file, the line containing the keyword will be displayed. (Note that Linux is case-sensitive, so searching for `keyword` will not match `Keyword`, but we could also use `grep -i keyword filename` to ignore the case)
+
+- The default direction is `<`, so `grep keyword filename` is the same as `grep keyword < filename`, means the input is from the file.
+- We can use `grep` with `*` to search for a keyword in multiple files, like `grep keyword *`, if we wanna go into the subdirectories, we can use `grep -r  keyword *`
+- There's also a `grep -v` option to search for lines that don't contain the keyword.
+
+#### Other commands
+
+- `less filename` to view the content of a file, `more filename` is similar to `less`, but `less` is more powerful.
+- `head filename` to see the first 10 lines of a file, `tail filename` to see the last 10 lines of a file, `tail -f filename` to see the last 10 lines of a file and keep watching the file for changes, which is useful to check the logs
+- `/etc/passwd` file contains the information of all users, we can check the user information with `cat /etc/passwd`. As different columns are separated by `:`, we can use `cut -d: -f1 /etc/passwd` to get the first column, which is the username. `cut` is a command to make use of delimiters, `-d` is the delimiter, and `-f` is the field (1-based index).
+- If we don't have a specific delimiter, we can use `awk` command, like `awk -F ' ' '{print $1}' /etc/passwd`, which will print the first column of the file. `awk` is a powerful command to manipulate text files, especially in searching.
+
+- Search and replace: in vim, we can use `:%s/old/new` to replace `old` with `new` in the whole file, but just once in a line. To replace all occurrences in a line, we can use `:%s/old/new/g`. We can also use the `sed` command to replace text in a file, like `sed 's/old/new/g' filename`. But this won't change the original file, to change the original file, we can use `sed -i 's/old/new/g' filename`.
+
+### Redirections
+
+The default output, aka 'standard output', is our monitor, but we could redirect it to a file with `>`, like `uptime > uptime.txt`. We can also append the output to a file with `>>`, like `uptime >> uptime.txt`.
+
+If we don not want to see the output, we can redirect it to `/dev/null`, which is like a black hole, like `uptime > /dev/null`. If we made a mistake but we don't want to see the error message, we can redirect the error message to `/dev/null`, like `uptime 2> /dev/null`. (2 is for standard error, 1 is for standard output, the default value). If we wanna direct everything, we can use `uptime &> /dev/null`.
+
+We can also redirect `/dev/null` to a file, like `uptime < /dev/null`, to clear the file.
+
+### Pipes
+
+- Taking `wc -l` as an example, `wc` is a command to count. We can use `wc -l filename` to count the number of lines in a file. We can also use `wc -l < filename` to count the number of lines in a file, but the filename is not displayed. The `<` means the input of the command is from the file.
+- How can we use the pipe? We can use `|` to connect the output of one command to the input of another command, like `ls -l | wc -l`, which will count the number of files in the current directory (bc each file is a line in the output of `ls -l`).
+- Searching a file
+  - Real-time search: `find <directory> -name <filename>` to search for a file in a directory, like `find / -name passwd`, which will search for the file named `passwd` in the root directory.
+  - Static search with `locate`: `locate passwd` to search for the file named `passwd`, but it's not real-time, it's based on the database, so we need to update the database with `updatedb` before searching.
+
+### Users and Groups
+
+- Users and groups are user to control the access to the files and directories. Every file and every process has an owner and a group.
+- Username and uid are stored in `/etc/passwd`, password and other information are stored in `/etc/shadow` encrypted, group information is stored in `/etc/group`.
