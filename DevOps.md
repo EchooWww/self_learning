@@ -166,7 +166,7 @@ The default output, aka 'standard output', is our monitor, but we could redirect
 
 If we don not want to see the output, we can redirect it to `/dev/null`, which is like a black hole, like `uptime > /dev/null`. If we made a mistake but we don't want to see the error message, we can redirect the error message to `/dev/null`, like `uptime 2> /dev/null`. (2 is for standard error, 1 is for standard output, the default value). If we wanna direct everything, we can use `uptime &> /dev/null`.
 
-We can also redirect `/dev/null` to a file, like `uptime < /dev/null`, to clear the file.
+We can also redirect `/dev/null` to a file, like `uptime.txt < /dev/null`, to clear the file.
 
 ### Pipes
 
@@ -180,3 +180,21 @@ We can also redirect `/dev/null` to a file, like `uptime < /dev/null`, to clear 
 
 - Users and groups are user to control the access to the files and directories. Every file and every process has an owner and a group.
 - Username and uid are stored in `/etc/passwd`, password and other information are stored in `/etc/shadow` encrypted, group information is stored in `/etc/group`.
+
+```
+head -1 /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+```
+
+- The first column is the username, the second column is the password (shafow file encrypted), the third column is the uid, the fourth column is the gid (group id), the fifth column is the comment, the sixth column is the home directory, the seventh column is the login shell.
+
+- To check groups, we can use `cat /etc/group`, the first column is the group name, the second column is the password, the third column is the gid, the fourth column is the users in the group.
+
+```
+id vagrant
+uid=1000(vagrant) gid=1000(vagrant) groups=1000(vagrant)
+```
+
+- We can create users with `useradd username`, and create groups with `groupadd groupname`. We can add users to groups with `usermod -aG groupname username`, or edit the `/etc/group` file directly. We can also delete users with `userdel username`, and delete groups with `groupdel groupname`. If we wanna remove the home directory of the user, we can use `userdel -r username`.
+- We can change the password with `passwd username`. But as a root user, we could switch to another user with `su username` without a password, and switch back with `exit`.
+- Another useful command is `lsof`, which stands for list open files, to see the files opened by a user, like `lsof -u username`. This command could also help us tell which user is logged in.
