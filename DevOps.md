@@ -198,3 +198,27 @@ uid=1000(vagrant) gid=1000(vagrant) groups=1000(vagrant)
 - We can create users with `useradd username`, and create groups with `groupadd groupname`. We can add users to groups with `usermod -aG groupname username`, or edit the `/etc/group` file directly. We can also delete users with `userdel username`, and delete groups with `groupdel groupname`. If we wanna remove the home directory of the user, we can use `userdel -r username`.
 - We can change the password with `passwd username`. But as a root user, we could switch to another user with `su username` without a password, and switch back with `exit`.
 - Another useful command is `lsof`, which stands for list open files, to see the files opened by a user, like `lsof -u username`. This command could also help us tell which user is logged in.
+
+### File Permissions
+
+If we run `ls -l`, we can see the file permissions. The 1st digit is the file type, the next 3 digits are the owner's permissions, the next 3 digits are the group's permissions, and the last 3 digits are the others' permissions.
+
+- 1st digit: `-` for regular file, `d` for directory, `l` for symbolic link.
+- 2nd-10th digits: `r` for read, `w` for write, `x` for execute, `-` for no permission.
+
+After the period, we can see the owner, the group, and the size of the file, the timestamp, and the filename.
+
+We can use `chown -R username:groupname filename` to change the owner and the group of the file.
+
+Another command is `chmod`, which stands for change mode. We can use `chmod u+x filename` to give the owner the execute permission, `chmod g+w filename` to give the group. There's a numeric methos: 4 for read, 2 for write, 1 for execute, so `chmod 755 filename` is the same as `chmod u=rwx,g=rx,o=rx filename`.
+
+### Sudo
+
+- Switch from vagrant to root user: `sudo -i`. Another way to execute a command as root is to use `sudo command`, like `sudo ls`.
+- It's not available to all users, we can add a user to the sudo group with `visudo`, and add `username ALL=(ALL) ALL` to the file. Or we can `cd /etc/sudoers.d` and create a file with the username, and add `username ALL=(ALL) ALL` to the file. It could also be a group, like `%groupname ALL=(ALL) ALL`.
+
+### Package Management
+
+We use RPM (Redhat Package Manager) to install packages on Fedora. To install a package, we could google the package name and get the url, then use `curl <url> -o <filename>` to download the package, and use `rpm -i filename` to install the package. We can also use `rpm -e packagename` to remove the package.
+
+A better option is yum.
